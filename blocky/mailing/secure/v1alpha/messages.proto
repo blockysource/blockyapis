@@ -1,0 +1,360 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.mailing.secure.v1alpha;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/mailing/secure/v1alpha;mailingsecurev1alpha";
+
+// DeliveryEventType determines the type of the delivery event.
+enum DeliveryEventType {
+  // Determines an event that the message was successfully sent.
+  DELIVERY_EVENT_TYPE_SEND = 0;
+
+  // Determines an event that the message had bounced.
+  DELIVERY_EVENT_TYPE_BOUNCE = 1;
+
+  // Determines an event that the message was delayed.
+  DELIVERY_EVENT_TYPE_DELAYED = 2;
+
+  // Determines an event that the message was not rendered
+  // and was not sent.
+  DELIVERY_EVENT_TYPE_RENDERING_FAILURE = 3;
+
+  // Determines an event that the message was delivered
+  // to the recipient.
+  DELIVERY_EVENT_TYPE_DELIVERED = 4;
+
+  // Determines an event that the message was not delivered
+  // as it's sender address was from some reason invalid.
+  DELIVERY_EVENT_TYPE_FROM_FAILURE = 5;
+}
+
+// BounceType determines the type of the bounce event.
+enum BounceType {
+  // The type of the bounce is undefined.
+  BOUNCE_TYPE_UNDEFINED = 0;
+
+  // The transient type of a bounce, which means that further attempts
+  // to send the message may be successful.
+  BOUNCE_TYPE_TRANSIENT = 1;
+
+  // The permanent type of a bounce, which means that further attempts
+  // to send the message cannot be successful, and the message will not be sent.
+  // This should also mean that the email address should be removed from
+  // the mailing lists.
+  BOUNCE_TYPE_PERMANENT = 2;
+}
+
+// Defines a status of the message delivery.
+enum MessageStatus {
+  // The status of the message is undefined.
+  MESSAGE_STATUS_UNDEFINED = 0;
+
+  // The status of the message is pending.
+  MESSAGE_STATUS_PENDING = 1;
+
+  // The status of the message is sent.
+  MESSAGE_STATUS_SENT = 2;
+
+  // The status of the message is bounced.
+  MESSAGE_STATUS_BOUNCED = 3;
+
+  // The status of the message is delayed.
+  MESSAGE_STATUS_DELAYED = 4;
+
+  // The status of the message is delivered.
+  MESSAGE_STATUS_DELIVERED = 5;
+
+  // The status of the message is rendering failure.
+  MESSAGE_STATUS_RENDERING_FAILURE = 6;
+
+  // The status of the message is from failure.
+  MESSAGE_STATUS_FROM_FAILURE = 7;
+}
+
+
+// Is a service that provides mailing functionality.
+service MailingService {
+  // UploadAttachment uploads an attachment to the mailing service, the attachment will be available for sending.
+  // The attachment will be deleted from the mailing service after the specified TTL.
+  // In order to properly upload an attachment, the client should send a stream of
+  // [UploadAttachmentRequest][blocky.mailing.secure.v1alpha.UploadAttachmentRequest] messages, where the first message
+  // should be a [UploadAttachmentHeader][blocky.mailing.secure.v1alpha.UploadAttachmentHeader] message and the subsequent
+  // messages should be [UploadAttachmentChunk][blocky.mailing.secure.v1alpha.UploadAttachmentChunk] messages.
+  // The client should send the chunks in the same order as they are in the original file.
+  // The maximum gRPC message size is 4MB, so the chunk size should be less than that.
+  // The best practice is to use the chunks of 16-64KB.
+  rpc UploadAttachment(stream UploadAttachmentRequest) returns (UploadAttachmentResponse);
+
+  // SendMessage sends a single email message.
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+
+  // SendTemplatedMessage sends a single email message using a template.
+  rpc SendTemplatedMessage(SendTemplatedMessageRequest) returns (SendTemplatedMessageResponse);
+}
+
+// Request message for
+// [MailingService.UploadAttachment][blocky.mailing.secure.v1alpha.MailingService.UploadAttachment].
+message UploadAttachmentRequest {
+  // The attachment to upload.
+  // The first message in the stream should be a [UploadAttachmentHeader][blocky.mailing.secure.v1alpha.UploadAttachmentHeader]
+  // message and the subsequent messages should be [UploadAttachmentChunk][blocky.mailing.secure.v1alpha.UploadAttachmentChunk]
+  // Once streaming is complete, the client should half-close the stream.
+  // The client should send the chunks in the same order as they are in the original file.
+  oneof attachment {
+    UploadAttachmentHeader header = 1;
+    UploadAttachmentChunk chunk = 2;
+  }
+}
+
+// A header of the attachment to upload used as a first message in the stream
+// of [UploadAttachmentRequest][blocky.mailing.secure.v1alpha.UploadAttachmentRequest]
+message UploadAttachmentHeader {
+  // The identifier of the attachment to upload.
+  // If not provided, a new ID will be generated and returned in the response.
+  string attachment_id = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // The name of the attachment file to upload.
+  string file_name = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The content type of the attachment, if not provided, the content type will be resolved from the file name.
+  string content_type = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The duration after which the attachment will be deleted from the mailing service,
+  // once the attachment is sent in a message.
+  // If not provided the attachment will be deleted after default file TTL.
+  google.protobuf.Duration ttl_after_send = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// A chunk of the attachment to upload used as a subsequent message in the stream
+// of [UploadAttachmentRequest][blocky.mailing.secure.v1alpha.UploadAttachmentRequest]
+message UploadAttachmentChunk {
+  // Is the data chunk of the attachment to upload.
+  // The default grpc max message size is 4MB, so the chunk size should be less than that.
+  // The best practice is to use the chunks of 16-64KB.
+  bytes data = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Response message for
+// [MailingService.UploadAttachment][blocky.mailing.secure.v1alpha.MailingService.UploadAttachment].
+message UploadAttachmentResponse {
+  // The identifier of the attachment to upload.
+  string attachment_id = 1;
+
+  // Resolved content type of the attachment.
+  string content_type = 2;
+
+  // The size of the attachment in bytes.
+  uint32 size = 3;
+
+  // The duration after which the attachment will be deleted from the mailing service.
+  google.protobuf.Duration ttl_after_send = 4;
+}
+
+// Request message for
+// [MailingService.SendMessage][blocky.mailing.secure.v1alpha.MailingService.SendMessage].
+message SendMessageRequest {
+  // Required message definition to send.
+  // The message.message_id field is optional, if not provided, a new ID will be generated and returned in the response.
+  Message message = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Determines if the text body of the message should be automatically generated from the HTML body.
+  // If not provided only a HTML body will be sent.
+  // The raw text body, is useful for clients that cannot display HTML content.
+  bool generate_text_body = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [MailingService.SendMessage][blocky.mailing.secure.v1alpha.MailingService.SendMessage].
+message SendMessageResponse {
+  // The identifier of the message that was sent.
+  // If the message_id was provided in the request, the same ID will be returned in the response,
+  // otherwise this value is a referencable unique identifier generated by the mailing service.
+  string message_id = 1;
+}
+
+// Message is a single email message to send.
+message Message {
+  // The identifier of the message to send, if not provided, a new ID will be generated and returned in the response.
+  string message_id = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // The sender of the message.
+  string from = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The recipients of the message.
+  repeated string to = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // The carbon copy recipients of the message.
+  repeated string cc = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // The blind carbon copy recipients of the message.
+  repeated string bcc = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // The subject of the message.
+  string subject = 6 [(google.api.field_behavior) = REQUIRED];
+
+  // The HTML body of the message, if not provided, the text body should be provided.
+  string html = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // The text body of the message, if not provided, the HTML body should be provided.
+  // If not provided, the HTML body can be converted to the text body, if requested or
+  // service is configured to do so.
+  string text = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // The reply to address of the message.
+  string reply_to = 9[(google.api.field_behavior) = OPTIONAL];
+
+  // The date of the message.
+  google.protobuf.Timestamp date = 10 [(google.api.field_behavior) = OPTIONAL];
+
+  // The attachments of the message.
+  repeated EmailAttachment attachments = 11 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// A single email attachment to send along with the message.
+// It can either be a reference to the attachment uploaded to the mailing service
+// or a raw attachment data.
+// Note, that sum of all attachments size should not exceed 4MB
+// (the default gRPC message size limit).
+// If the sum is greater the attachment should be uploaded first, and then referenced by the attachment_id.
+message EmailAttachment {
+  oneof attachment {
+    // The reference to the attachment uploaded to the mailing service.
+    string attachment_id = 1;
+
+    // Embed attachment data, which will be sent over the gRPC.
+    // This should be relatively small attachment, which in sum with other attachments and message content should not exceed
+    // the default gRPC message size limit of 4MB.
+    EmbedEmailAttachment embed = 2;
+  }
+}
+
+// An attachment that is send over the gRPC
+// [blocky.mailing.secure.v1alpha.MailingService.SendMessage][blocky.mailing.secure.v1alpha.MailingService.SendMessage] or
+// [blocky.mailing.secure.v1alpha.MailingService.SendTemplatedMessage][blocky.mailing.secure.v1alpha.MailingService.SendTemplatedMessage]
+// request.
+// This should be relatively small attachment, which in sum with other attachments and message content should not exceed
+// the default gRPC message size limit of 4MB.
+message EmbedEmailAttachment {
+  // The file_name of the attachment.
+  string file_name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional, content type of the attachment.
+  // If not provided, the content type will be guessed from the file name.
+  string content_type = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The data of the attachment.
+  bytes data = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for
+// [MailingService.SendTemplatedMessage][blocky.mailing.secure.v1alpha.MailingService.SendTemplatedMessage].
+message SendTemplatedMessageRequest {
+  // Required templated message definition to send.
+  TemplatedMessage message = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message SendTemplatedMessageResponse {
+  // The identifier of the message that was sent,
+  // if the message_id was provided in the request, the same ID will be returned in the response,
+  // otherwise this value is a referencable unique identifier generated by the mailing service.
+  string message_id = 1;
+}
+
+// TemplatedMessage is a single email message to send using a template.
+message TemplatedMessage {
+  // The identifier of the message to send, if not provided,
+  // a new ID will be generated and returned in the response.
+  string message_id = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // The sender of the message,
+  // in contrast to the [Message.from][blocky.mailing.secure.v1alpha.Message.from] field,
+  // this may be predefined by the template, thus it is optional.
+  string from = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Required recipients of the message.
+  repeated string to = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional carbon copy recipients of the message.
+  repeated string cc = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional blind carbon copy recipients of the message.
+  repeated string bcc = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Required template name to use for the message.
+  string template_name = 6 [(google.api.field_behavior) = REQUIRED];
+
+  // Required template version to use for the message.
+  // A template may have multiple versions, and the version
+  // is used to select the correct template version.
+  string template_version = 7 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional template data, which will be used to render the template.
+  google.protobuf.Struct template_data = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional address which will be included in the 'Reply-To' header of the message.
+  string reply_to = 9 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional date which will be included in the 'Date' header of the message.
+  google.protobuf.Timestamp date = 10 [(google.api.field_behavior) = OPTIONAL];
+}
+
+
+// DeliveryEvent represents a single delivery event done by the mailing service.
+message DeliveryEvent {
+  // The type of the delivery event.
+  DeliveryEventType type = 1;
+
+  // Bounce details if the event is a bounce.
+  BounceRecord bounce = 2;
+
+  // The timestamp once the event was recorded.
+  google.protobuf.Timestamp timestamp = 3;
+
+  // The identifier of the message that the event is related to.
+  string message_id = 4;
+}
+
+// BounceRecord is a delivery event record for a bounced message.
+message BounceRecord {
+  // The type of the bounce.
+  BounceType type = 1;
+
+  // Recipients that bounced the message.
+  repeated BouncedRecipient recipients = 2;
+
+  // The timestamp once the event was recorded.
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+// BouncedRecipient is a recipient that bounced the message.
+// The status and code fields are taken from the SMTP response.
+message BouncedRecipient {
+  // The email address of the recipient that bounced the message.
+  string email = 1;
+
+  // The status of the bounce.
+  string status = 2;
+
+  // The code of the bounce.
+  string code = 3;
+}

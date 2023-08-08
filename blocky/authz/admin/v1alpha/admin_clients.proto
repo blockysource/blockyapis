@@ -1,0 +1,167 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/authz/type/signing_algorithm.proto";
+import "google/api/field_behavior.proto";
+import "google/api/client.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// ClientsAdminService is an administrative service for managing authorization clients.
+service ClientsAdminService {
+  // Configures the authorization service.
+  option (google.api.oauth_scopes) = "https://www.blockyapis.com/auth/authz.admin";
+
+  // Creates a new authorization client with the specified name,
+  // and returns the new client.
+  // A newly created client will have a secret generated.
+  rpc CreateClient(CreateClientRequest) returns (Client);
+
+  // Lists authorization clients matching the specified filter.
+  rpc ListClients(ListClientsRequest) returns (ListClientsResponse);
+
+  // Gets an authorization client by its identifier.
+  rpc GetClient(GetClientRequest) returns (Client);
+
+  // Updates an authorization client, and returns the updated client.
+  rpc UpdateClient(UpdateClientRequest) returns (Client);
+
+  // Deletes an authorization client.
+  rpc DeleteClient(DeleteClientRequest) returns (Client);
+}
+
+
+// Request message for
+// [ClientsAdminService.ListClients][blocky.authz.admin.v1alpha.ClientsAdminService.ListClients].
+message CreateClientRequest {
+  // Required. The client name to create.
+  string name = 1 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The authorization scopes that the client is allowed to use.
+  // If empty, and client is marked as secure,
+  // the client is allowed to use any scopes.
+  // If empty, and client is not marked as secure,
+  // the client is not allowed to use any scopes, until it is updated.
+  repeated string allowed_scopes = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Signing algorithms this client is capable of using,
+  // in order of preference.
+  // If empty, the client is allowed to use all algorithms, and has no preferences.
+  repeated authz.type.SigningAlgorithm allowed_algorithms = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether this client is allowed to use any authorization scopes.
+  bool is_secure = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [ClientsAdminService.ListClients][blocky.authz.admin.v1alpha.ClientsAdminService.ListClients].
+message CreateClientResponse {
+  // The created client.
+  Client client = 1;
+
+  // The secret for the created client.
+  // This is only populated when the client is created.
+  string secret = 2;
+}
+
+// Request message for
+// [ClientsAdminService.ListClients][blocky.authz.admin.v1alpha.ClientsAdminService.ListClients].
+message ListClientsRequest {
+  // The maximum number of clients to return.
+  // The service may return fewer than this value.
+  // If unspecified, at most 50 clients will be returned.
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // A page token, received from a previous
+  // [ClientsAdminService.ListClients][blocky.authz.admin.v1alpha.ClientsAdminService.ListClients] call.
+  // Provide this to retrieve the subsequent page.
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [ClientsAdminService.ListClients][blocky.authz.admin.v1alpha.ClientsAdminService.ListClients].
+message ListClientsResponse {
+  repeated Client clients = 1;
+}
+
+
+// Request message for
+// [ClientsAdminService.GetClient][blocky.authz.admin.v1alpha.ClientsAdminService.GetClient].
+message GetClientRequest {
+  // Required. The name of the client to retrieve.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Response message for
+// [ClientsAdminService.GetClient][blocky.authz.admin.v1alpha.ClientsAdminService.GetClient].
+message GetClientResponse {
+  // The requested client.
+  Client client = 1;
+}
+
+// Request message for
+// [ClientsAdminService.DeleteClient][blocky.authz.admin.v1alpha.ClientsAdminService.DeleteClient].
+message DeleteClientRequest {
+  // Required. The name of the client to delete.
+  string client_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Response message for
+// [ClientsAdminService.DeleteClient][blocky.authz.admin.v1alpha.ClientsAdminService.DeleteClient].
+message DeleteClientResponse {
+  // The deleted client.
+  Client client = 1;
+}
+
+// Request message for
+// [ClientsAdminService.UpdateClient][blocky.authz.admin.v1alpha.ClientsAdminService.UpdateClient].
+message UpdateClientRequest {
+  // Required. The client to update.
+  Client client = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Client represents an authorization client that can be used to authorize
+message Client {
+  // A unique identifier of the client.
+  string id = 1 [(google.api.field_behavior) = IMMUTABLE];
+
+  // The name of the client to display.
+  string name = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The time when the client was created.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = IMMUTABLE];
+
+  // The time when the client was last updated.
+  google.protobuf.Timestamp update_time = 4 [(google.api.field_behavior) = IMMUTABLE];
+
+  // Authorization scopes that the client is allowed to use.
+  // If empty, the client is allowed to use all scopes, and is treated as a super client.
+  // If not empty, the client is only allowed to use the specified scopes.
+  repeated string allowed_scopes = 5 [(google.api.field_behavior) = OPTIONAL];
+
+  // Default key algorithm that the client expects to use.
+  // If empty, the client is given a default algorithm.
+  // The order of key algorithms is important, as it defines the order in which keys are tried.
+  // If the client does not support any of the specified algorithms, the first algorithm is used.
+  repeated authz.type.SigningAlgorithm key_algorithms = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether this client is allowed to use any authorization scopes.
+  bool is_secure = 7 [(google.api.field_behavior) = OPTIONAL];
+}

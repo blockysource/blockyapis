@@ -1,0 +1,90 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.secure.v1alpha;
+
+
+import "blocky/authz/type/signing_algorithm.proto";
+import "google/protobuf/struct.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/blockysource/go-genproto/authz/secure/v1alpha;authzsecurev1alpha";
+
+
+// The SignaturesService provides methods to sign and introspect custom claims.
+// This service should not be used to sign or introspect tokens,
+// but rather create some easily verifiable claims.
+// Signed claims are not encrypted, thus the claims are visible to anyone
+// that has access to the token.
+// Signing claims is useful to create a verifiable proof that the claims
+// were created by a trusted party, and none of the claims were tampered with.
+service SignaturesService {
+  // Signs the input payload and returns a signed string token.
+  // The result is a Json Web Signature (JWS) as defined in RFC 7515.
+  rpc SignClaims(SignClaimsRequest) returns (SignClaimsResponse);
+
+  // Introspects the signature and returns the claims.
+  // Once the signature is verified, the claims are returned as a Struct.
+  rpc IntrospectSignature(IntrospectSignatureRequest) returns (IntrospectSignatureResponse);
+}
+
+
+// Request message for
+// [SignaturesService.SignClaims][blocky.authz.secure.v1alpha.SignaturesService.SignClaims].
+message SignClaimsRequest {
+  // The claims to sign.
+  google.protobuf.Struct claims = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional signature type to use.
+  // If not specified a signature is generated using the default key
+  // and the default signing algorithm.
+  // The signature type may be used to override the default key and algorithm.
+  // This field relates to the signature type id in the
+  // [SignatureType][blocky.authz.secure.v1alpha.SignatureType] message.
+  string signature_type_id = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional key id to use.
+  // If not specified the default key id is used.
+  // This field relates to the field:
+  // [Key][blocky.authz.secure.v1alpha.Key.key_id].
+  string key_id = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional signing algorithm to use.
+  // If not specified the default signing algorithm is used.
+  // If no matching algorithm is found, an error is returned.
+  authz.type.SigningAlgorithm signing_algorithm = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [SignaturesService.SignClaims][blocky.authz.secure.v1alpha.SignaturesService.SignClaims].
+message SignClaimsResponse {
+  // The compacted JWS token as defined in RFC 7515.
+  string token = 1;
+}
+
+// Request message for
+// [SignaturesService.IntrospectSignature][blocky.authz.secure.v1alpha.SignaturesService.IntrospectSignature].
+message IntrospectSignatureRequest {
+  // Required signature to introspect.
+  string signature = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Response message for
+// [SignaturesService.IntrospectSignature][blocky.authz.secure.v1alpha.SignaturesService.IntrospectSignature].
+message IntrospectSignatureResponse {
+  // The claims returned by the introspection.
+  google.protobuf.Struct claims = 1;
+}

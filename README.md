@@ -1,2 +1,3 @@
-# blockyapis
-Public interface definitions of Blocky APIs. 
+# Blocky APIs
+
+This repository contains the original interface definitions for the Blocky APIs. 

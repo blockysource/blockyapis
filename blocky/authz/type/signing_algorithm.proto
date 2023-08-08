@@ -1,0 +1,54 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.type;
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/type/signalgpb;signalgpb";
+
+// KeyAlgorithm is an algorithm used to sign and verify JSON Web Tokens (JWT) as defined in RFC 7518.
+enum SigningAlgorithm {
+  // Unspecified algorithm.
+  SIGNING_ALGORITHM_UNSPECIFIED = 0;
+
+  // Defines No digital signature
+  NONE = 1;
+  // Defines HMAC SHA-256 signing algorithm.
+  HS256 = 2;
+  // Defines HMAC SHA-384 signing algorithm.
+  HS384 = 3;
+  // Defines HMAC SHA-512 signing algorithm.
+  HS512 = 4;
+  // Defines RSA PKCS1 v1.5 signing algorithm.
+  RS256 = 5;
+  // Defines RSA PSS signing algorithm with SHA-384 hash.
+  RS384 = 6;
+  // Defines RSA PSS signing algorithm with SHA-512 hash.
+  RS512 = 7;
+  // Defines Elliptic Curve signing algorithm with P-256 curve SHA-256 hash.
+  ES256 = 8;
+  // Defines Elliptic Curve signing algorithm with P-384 curve SHA-384 hash.
+  ES384 = 9;
+  // Defines Elliptic Curve signing algorithm with P-521 curve SHA-512 hash.
+  ES512 = 10;
+  // Defines RSASSA-PSS signing algorithm with SHA-256 hash.
+  PS256 = 11;
+  // Defines RSASSA-PSS signing algorithm with SHA-384 hash.
+  PS384 = 12;
+  // Defines RSASSA-PSS signing algorithm with SHA-512 hash.
+  PS512 = 13;
+  // Defines EdDSA - Edwards-Curve Digital Signature Algorithm  (Ed25519) signing algorithm.
+  EdDSA = 14;
+}

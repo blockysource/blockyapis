@@ -1,0 +1,155 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.secure.v1alpha;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/empty.proto";
+import "google/api/field_behavior.proto";
+
+option go_package = "github.com/blockysource/go-genproto/authz/secure/v1alpha;authzsecurev1alpha";
+
+
+// TokensService is a service used to issue, refresh, revoke and introspect tokens.
+service TokensService {
+  // Issues a new authorization token for the input subject.
+  rpc IssueToken(IssueTokenRequest) returns (IssueTokenResponse);
+
+  // Creates a new access, refresh token pair on top of the input refresh token.
+  // The input refresh token needs to be non-expired, non-revoked and active.
+  // Resulting tokens will share the claims provided during the [IssueTokenRequest].
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+
+  // Revokes the input refresh token.
+  // Revoked refresh tokens will not be able to be used to issue new tokens.
+  // This makes the refresh token invalid.
+  rpc RevokeRefreshToken(RevokeRefreshTokenRequest) returns (google.protobuf.Empty);
+
+  // Checks if the input token is valid, and if so, returns the claims of the token.
+  // If the token is invalid, the response will contain an error.
+  rpc IntrospectToken(IntrospectTokenRequest) returns (IntrospectTokenResponse);
+}
+
+
+// Request message for
+// [TokensService.IssueToken][blocky.authz.secure.v1alpha.TokensService.IssueToken].
+message IssueTokenRequest {
+  // Required, the subject of the token.
+  // The subject is the unique identifier of the user or service account that the token represents.
+  string subject = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional key identifier used to sign this token.
+  // If not provided, the token will be signed with the default key.
+  // If provided, it must be a valid key identifier, otherwise the request will fail,
+  // with the error NotFound.
+  string key_id = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional custom claims to be added to the token.
+  // By default, the token will contain the following claims:
+  // - sub: the subject of the token
+  // - iss: the issuer of the token
+  // - aud: the audience of the token
+  // - iat: the time the token was issued
+  // - exp: the time the token will expire
+  // - jti: the unique identifier of the token
+  google.protobuf.Struct claims = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Required, the scope of the token.
+  // The scope is a list of strings that represent the permissions that the token grants.
+  string scope = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // Optional, identifier of the client that is requesting the token.
+  // If not provided, the token will be issued for the default client,
+  // and no scope validation will be performed.
+  // Note: this affects permissible scopes, not the validity of the token.
+  string client_id = 5 [(google.api.field_behavior) = OPTIONAL];
+
+}
+
+// IssueTokenResponse is a response used to issue a token.
+message IssueTokenResponse {
+  // Is the access token
+  string access_token = 1;
+  string refresh_token = 2;
+  int64 expires_in = 3;
+}
+
+message IntrospectTokenResponse {
+  StandardTokenClaims claims = 1;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+  bool force_configuration_options = 2;
+}
+
+message RefreshTokenResponse {
+  string token_id = 1;
+}
+
+message RevokeRefreshTokenRequest {
+  string token = 1;
+}
+
+// IntrospectedTokenClaims is a set of claims that are returned when introspecting a token.
+message StandardTokenClaims {
+  string token_id = 1 [json_name = "jti"];
+  bool active = 2;
+  string subject = 3 [json_name = "sub,omitempty"];
+  int64 expires_at = 4 [json_name = "exp,omitempty"];
+  int64 issued_at = 5 [json_name = "iat,omitempty"];
+  int64 revoked_at = 6 [json_name = "rat,omitempty"];
+  int64 not_before = 7 [json_name = "nbf,omitempty"];
+  string issuer = 8 [json_name = "iss,omitempty"];
+  string scope = 9;
+  string audience = 10 [json_name = "aud,omitempty"];
+  string client_id = 11 [json_name = "client_id,omitempty"];
+}
+
+// IntrospectTokenRequest is a request used to introspect a token.
+message IntrospectTokenRequest {
+  string token = 1;
+}
+
+// IssueKeyTypeTokenRequest is a request used to sign a user defined payload.
+message IssueKeyTypeTokenRequest {
+  string token_id = 1; // Is the optional unique identifier of given token. If not provided, the token will be assigned a random unique identifier.
+  string key_type_id = 2;
+  bytes json_claims = 3; // The payload to sign. It could be encoded in any format, as the token will treat it as opaque, and encode into standard base64 in its claims.
+}
+
+// IssueKeyTypeTokenResponse is a response used to sign a user defined payload.
+message IssueKeyTypeTokenResponse {
+  string signed_token = 1;
+  string token_id = 2; // Is the unique identifier of given token.
+}
+
+// IntrospectKeyTypeTokenRequest is a request used to introspect a user defined payload.
+message IntrospectKeyTypeTokenRequest {
+  string key_type_id = 1;
+  string token = 2;
+}
+
+// IntrospectKeyTypeTokenResponse is a response used to introspect a user defined payload.
+message IntrospectKeyTypeTokenResponse {
+  string token_id = 1;
+  bytes json_payload = 2;
+  bool active = 3;
+  int64 expires_at = 4;
+  int64 issued_at = 5;
+  string issuer = 6;
+}
+

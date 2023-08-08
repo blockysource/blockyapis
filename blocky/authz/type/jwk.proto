@@ -1,0 +1,49 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.type;
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/type/jwkpb;jwkpb";
+
+// JWK represents a JSON Web Key as defined in RFC 7517.
+// https://tools.ietf.org/html/rfc7517;
+// NOTE: this does not unmarshal to JSON directly, as the 'bytes' fields are
+// urlsafe base64 encoded in the JSON representation.
+//
+message JWK {
+  string use = 1;
+  string kty = 2;
+  string kid = 3;
+  string crv = 4;
+  string alg = 5;
+  bytes k = 6;
+  bytes x = 7;
+  bytes y = 8;
+  bytes n = 9;
+  bytes e = 10;
+  bytes d = 11;
+  bytes p = 12;
+  bytes q = 13;
+  bytes dp = 14;
+  bytes dq = 15;
+  bytes qi = 16;
+  repeated bytes x5c = 17;
+  string x5u = 18;
+  bytes x5t_sha1 = 19 [json_name = "x5t"];
+  bytes x5t_sha256 = 20 [json_name = "x5t#S256"];
+  int64 created_at = 21; // created_at is not a standard JWK field, but contains some relevant information used internally by authz service.
+}
+

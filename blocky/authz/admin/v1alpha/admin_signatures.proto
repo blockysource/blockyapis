@@ -1,0 +1,173 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/authz/type/signing_algorithm.proto";
+import "google/api/field_behavior.proto";
+import "google/api/client.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// The service that an application uses to administrate signature resources.
+service SignaturesAdminService {
+  // Configures the token scopes.
+  option (google.api.oauth_scopes) = "https://www.blockyapis.com/auth/authz.admin";
+
+  // Creates a new signature type that can be used to create signatures.
+  // The signature type defines configuration for the signatures that are created.
+  // A signature type is also used to match client signatures to the signature type.
+  rpc CreateSignatureType(CreateSignatureTypeRequest) returns (CreateSignatureTypeResponse);
+
+  // Lists all defined signature types.
+  rpc ListSignatureTypes(ListSignatureTypesRequest) returns (ListSignatureTypesResponse);
+
+  // Updates signature type configuration.
+  // If the fields are not defined in the request, the existing values are preserved.
+  rpc UpdateSignatureType(UpdateSignatureTypeRequest) returns (UpdateSignatureTypeResponse);
+}
+
+// Request message for
+// [SignaturesAdminService.CreateSignatureType][blocky.authz.v1alpha.SignaturesAdminService.CreateSignatureType].
+message CreateSignatureTypeRequest {
+  // Optional user-provided ID for the signature type.
+  // The identifier needs to be unique within the project.
+  // If not provided, a random signature identifier will be generated.
+  string signature_type_id = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional, user-provided name for the signature type.
+  // Only used for display purposes.
+  // If not provided, a new name will be generated.
+  string name = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional identifier of the key used to sign the signatures that are created from this signature type.
+  // If not provided, the service chooses a signing key with the highest priority from the key set,
+  // and optionally that matches the favored algorithm.
+  // This field matches the identifier of a key, not a key version.
+  // [Key.key_id][blocky.authz.v1alpha.Key.key_id]
+  string key_id = 3 [(google.api.field_behavior) = OPTIONAL];
+  // Optional, favored algorithm for the signatures that are created from this signature type.
+  // If not provided, the server will choose a default signing key algorithm.
+  // If the key set doesn't contain a key for the favored algorithm, the server will choose a
+  // different algorithm.
+  authz.type.SigningAlgorithm favored_algorithm = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Token expiration duration.
+  google.protobuf.Duration signature_expiration = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [SignaturesAdminService.CreateSignatureType][blocky.authz.v1alpha.SignaturesAdminService.CreateSignatureType].
+message CreateSignatureTypeResponse {
+  // The identifier of the created signature type.
+  // If the request specified an identifier, the server returns the same identifier.
+  // Otherwise, the server generates a random identifier.
+  string signature_type_id = 1;
+
+  // The name of the created signature type.
+  string name = 2;
+
+  // The time when the signature type was created.
+  google.protobuf.Timestamp create_time = 3;
+
+  // Token expiration time.
+  google.protobuf.Duration signature_expiration = 4;
+}
+
+// Request message for
+// [SignaturesAdminService.ListSignatureTypes][blocky.authz.v1alpha.SignaturesAdminService.ListSignatureTypes].
+message ListSignatureTypesRequest {
+  // Optional, the maximum number of signature types to return.
+  // If not specified, a server-defined default is used - usually 50.
+  int32 page_size = 1;
+
+  // Optional, a page signature to request the next page of results.
+  // If not specified, the first page of results is returned.
+  string page_signature = 2;
+}
+
+
+// Response message for
+// [SignaturesAdminService.ListSignatureTypes][blocky.authz.v1alpha.SignaturesAdminService.ListSignatureTypes].
+message ListSignatureTypesResponse {
+  // The signature types that matched the request.
+  repeated SignatureType signature_types = 1;
+
+  // A signature that can be used to request the next page of results.
+  // If empty, there are no more results.
+  string next_page_signature = 2;
+}
+
+// SignatureType represents a type of signature that can be used to create signatures.
+message SignatureType {
+  // The unique identifier of the signature type.
+  string signature_type_id = 1;
+
+  // The name of the signature type.
+  string name = 2;
+
+  // The time when the signature type was created.
+  google.protobuf.Timestamp create_time = 3;
+
+  // The time when the signature type was last modified.
+  google.protobuf.Timestamp update_time = 4;
+
+  // Token expiration time.
+  google.protobuf.Duration signature_expiration = 5;
+
+  // Favored algorithm for the signatures that are created from this signature type.
+  authz.type.SigningAlgorithm favored_algorithm = 6;
+
+  // Optional, the identifier of the key used to sign the signatures that are created from this signature type.
+  string key_id = 7;
+
+  // Determines if the signature type is built-in or user-defined.
+  // Built-in signature types are created by the system and cannot be deleted.
+  bool built_in = 8;
+}
+
+// Request message for
+// [SignaturesAdminService.UpdateSignatureType][blocky.authz.v1alpha.SignaturesAdminService.UpdateSignatureType].
+// If all fields are empty, the request is a no-op.
+message UpdateSignatureTypeRequest {
+  // The identifier of the signature type to update.
+  string signature_type_id = 1;
+
+  // Optional, the new name of the signature type.
+  // If not provided, the existing name is preserved.
+  string name = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional, the new key identifier used for the signatures that are created from this signature type.
+  // If not provided, the existing key identifier is preserved.
+  string key_id = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional, the new favored algorithm for the signatures that are created from this signature type.
+  // If not provided, the existing algorithm is preserved.
+  authz.type.SigningAlgorithm favored_algorithm = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional, the new signature expiration duration.
+  // If not provided, the existing expiration duration is preserved.
+  google.protobuf.Duration signature_expiration = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [SignaturesAdminService.UpdateSignatureType][blocky.authz.v1alpha.SignaturesAdminService.UpdateSignatureType].
+message UpdateSignatureTypeResponse {
+  // The updated signature type.
+  SignatureType signature_type = 1;
+}
