@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package blocky.api;
+
+import "blocky/api/query_parameters.proto";
+import "google/protobuf/descriptor.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/api/annotations;blockyannnotations";
+
+// MessageProperties is used to annotate messages with additional information.
+// This information can be used by generators to generate code that is more
+// suitable for the given message.
+// It also allows to specify some properties that are not part of the
+// protobuf specification.
+message MessageProperties {
+  // States that given message is comparable to other messages of the same type.
+  bool comparable = 1;
+}

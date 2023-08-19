@@ -1,0 +1,67 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.api;
+
+option go_package = "github.com/blockysource/go-genproto/blocky/api/annotations;blockyannnotations";
+
+// QueryParameters defines the query parameters for a message.
+message QueryParameters {
+  // Pagination parameters that are specific to this message.
+  Pagination pagination = 1;
+
+  // Is a default sorting order of the query.
+  // The string format is defined in: https://aip.dev/132#ordering
+  // Example:
+  //  "name desc, create_time"
+  string order_by = 2;
+
+  // An abstract maximum complexity of the filter that this
+  // message supports.
+  // This can be used to calculate the complexity of a filter.
+  // If served query complexity exceeds this value, the server
+  // may return an error with grpc code RESOURCE_EXHAUSTED.
+  int64 max_complexity = 3;
+
+  // The name of the response field that contains resulting
+  // resources.
+  // This by default is a lower case plural of the resource name.
+  // Example:
+  //
+  //  service FooService {
+  //    rpc ListFoos(ListFoosRequest) returns (ListFoosResponse){
+  //      option (blocky.api.query_params) = {
+  //        results: "foos"
+  //      };
+  //
+  //  message ListFoosResponse {
+  //    repeated Foo foos = 1;
+  //  }
+  //  The default value of this field is "foos".
+  //
+  // This field might be really useful for non-standard
+  // pluralization rules i.e. "foos" -> "foo_list".
+  string results = 4;
+}
+
+// Pagination defines the maximum page size for a message.
+message Pagination {
+  // Is the page size.
+  int64 max_size = 1;
+
+  // Default page size.
+  int64 default_size = 2;
+}

@@ -16,11 +16,12 @@ syntax = "proto3";
 
 package blocky.authz.admin.v1alpha;
 
+import "blocky/api/annotations.proto";
 import "blocky/authz/type/signing_algorithm.proto";
+import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/api/annotations.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -32,16 +33,26 @@ service KeysAdminService {
   option (google.api.oauth_scopes) = "https://www.blockyapis.com/auth/authz.admin";
 
   // ListKeys lists authorization keys that matches given request.
-  rpc ListKeys(ListKeysRequest) returns (ListKeysResponse);
+  rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 50
+      },
+      order_by: "created_at desc"
+      max_complexity: 100,
+      results: "keys",
+    };
+  }
 
   // CreateKey creates a new authorization key.
   // New key is neither active nor used in a set.
   rpc CreateKey(CreateKeyRequest) returns (Key) {
-    option( google.api.http) = {
+    option (google.api.http) = {
       post: "/v1alpha/keys"
       body: "key"
     };
-  };
+  }
 
   // ActivateKey activates an authorization key identified by the given key ID.
   // Once activated the key is used for signing and verification.
@@ -59,9 +70,6 @@ service KeysAdminService {
   // The key versions are derived from the parent key.
   rpc ListKeyVersions(ListKeyVersionsRequest) returns (ListKeyVersionsResponse);
 }
-
-
-
 
 // Key is a representation of an authorization key.
 // It contains information about the key, such as its ID, algorithm, name and
@@ -132,28 +140,6 @@ message CreateKeyRequest {
 
   // Required, resource to create.
   Key key = 2 [(google.api.field_behavior) = REQUIRED];
-
-
-//  // Algorithms determines the signing and verification algorithms used by the key.
-//  repeated authz.type.SigningAlgorithm algorithms = 2 [(google.api.field_behavior) = REQUIRED];
-//
-//  // Name is a human readable name for the key.
-//  // If not provided, a random name will be generated.
-//  string name = 3 [(google.api.field_behavior) = OPTIONAL];
-//
-//  // RotationPeriod is the period after which the key will be rotated.
-//  // Once rotated the key is no longer used for signing the keys.
-//  // However after rotation, it is still used for verification.
-//  // The key will not be used neither for signing nor verification after
-//  // it is revoked.
-//  // If not provided, the key will not be rotated, unless the service configuration
-//  // specifies a default rotation period.
-//  google.protobuf.Duration rotation_period = 4 [(google.api.field_behavior) = OPTIONAL];
-//
-//  // Priority of the key.
-//  // The higher the priority, the more likely the key will be used for signing.
-//  // If not provided, the key will be assigned the default priority 1.
-//  int32 priority = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Request message for
@@ -168,7 +154,6 @@ message ListKeysRequest {
   // Optional. A pagination token returned from a previous call to
   // `ListKeysRequest` that indicates where this listing should continue from.
   string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
-
 
   // Optional. Skips the specified number of keys in the result.
   int32 skip = 3 [(google.api.field_behavior) = OPTIONAL];
@@ -187,8 +172,6 @@ message ListKeysResponse {
   // Total number of keys matching the request, regardless of the page size.
   int32 total_size = 3;
 }
-
-
 
 // Request message for
 // [AuthzAdminService.ActivateKey][blocky.authz.admin.v1alpha.AuthzAdminService.ActivateKey].
@@ -225,6 +208,7 @@ message KeyVersion {
   authz.type.SigningAlgorithm algorithm = 3;
 
   // The creation time of the key version.
+
   google.protobuf.Timestamp create_time = 4;
 
   // The key version number for the parent.
