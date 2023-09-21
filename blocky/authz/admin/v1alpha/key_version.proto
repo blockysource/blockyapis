@@ -1,0 +1,65 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/authz/type/signing_algorithm.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// KeyVersion represents a version of a key.
+message KeyVersion {
+  option (google.api.resource) = {
+    type: "authz.blockyapis.com/KeyVersion"
+    pattern: "/keys/{key}/versions/{version}"
+    name_field: "name"
+    plural: "key_versions"
+    singular: "key_version"
+  };
+
+  // The resource name of the key version.
+  // Format: `keys/{key}/versions/{version}`
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The version of the key.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The key which this version belongs to.
+  string key = 3 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"}
+  ];
+
+  // Algorithm is the signing algorithm used for this key version.
+  authz.type.SigningAlgorithm algorithm = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The creation time of the key version.
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The key version number for the parent.
+  // All the key versions rotated from the same parent key have the same version number.
+  int32 version_number = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Revocation time of the key version.
+  // If the key version was revoked, it is no longer used for signing and verification.
+  // This version is not included in the public JWK set.
+  // Once rotated, a new key version is no longer marked as revoked.
+  // Remains null if the key version was not revoked.
+  google.protobuf.Timestamp revoke_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+}

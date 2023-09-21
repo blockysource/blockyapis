@@ -1,0 +1,129 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/api/annotations.proto";
+import "blocky/authz/admin/v1alpha/key_version.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// KeyVersionAdminService is the service that provides key version management
+service KeyVersionAdminService {
+  // GetKeyVersion returns the specified key version.
+  rpc GetKeyVersion(GetKeyVersionRequest) returns (KeyVersion) {
+    option (google.api.http) = {get: "/v1alpha/{name=keys/*/versions/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // ListKeyVersions lists authorization key versions that matches given request.
+  // The key versions are derived from the parent key.
+  rpc ListKeyVersions(ListKeyVersionsRequest) returns (ListKeyVersionsResponse) {
+    option (google.api.http) = {get: "/v1alpha/keys/{key_id}/versions"};
+    option (google.api.method_signature) = "parent,version";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 20,
+      }
+      order_by: "create_time desc"
+    };
+  }
+
+  // RevokeKeyVersion revokes an authorization key version identified by the given identifier.
+  // Once revoked the key version is no longer valid for signing and verification.
+  // If revoked key was the only active signing key, the system will not accept
+  // any new requests until a new key is created and activated.
+  rpc RevokeKeyVersion(RevokeKeyVersionRequest) returns (KeyVersion) {
+    option (google.api.http) = {post: "/v1alpha/keys/{key_id}/versions/{version}:revoke"};
+    option (google.api.method_signature) = "name,rotate";
+  }
+
+  // RotateKeyVersion rotates the authorization key version identified by the given identifier.
+  // Once rotated the key version is no longer valid for signing, but is still valid for verification.
+  rpc RotateKeyVersion(RotateKeyVersionRequest) returns (KeyVersion) {
+    option (google.api.http) = {post: "/v1alpha/keys/{key_id}/versions:rotate"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// GetKeyVersionRequest is the request message for
+// the GetKeyVersion method.
+message GetKeyVersionRequest {
+  // Parent key identifier of the key version.
+  string parent = 1 [
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Required identifier of the key version to get.
+  string name = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for
+// [AuthzAdminService.RevokeKeyVersion][blocky.authz.admin.v1alpha.AuthzAdminService.RevokeKeyVersion].
+message RevokeKeyVersionRequest {
+  // Required identifier of the key to revoke.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Rotate after revoking the key.
+  // If set to true, the key will be rotated after revoking it.
+  // Otherwise, only selected key version is revoked.
+  bool rotate = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Request message for
+// [AuthzAdminService.ListKeyVersions][blocky.authz.admin.v1alpha.AuthzAdminService.ListKeyVersions].
+message ListKeyVersionsRequest {
+  // Required identifier of the key to list versions for.
+  string parent = 1 [
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Optional limit on the number of key versions to include in the response.
+  // If not provided, the service will use a default limit.
+  int32 limit = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional page token to continue listing key versions from.
+  // If not provided, the service will start listing from the beginning.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [AuthzAdminService.ListKeyVersions][blocky.authz.admin.v1alpha.AuthzAdminService.ListKeyVersions].
+message ListKeyVersionsResponse {
+  // List of key versions for the requested key.
+  repeated KeyVersion key_versions = 1;
+
+  // Token to continue listing key versions from.
+  // If there are no more key versions to list, the token is not included.
+  string next_page_token = 2;
+}
+
+// RotateKeyVersionRequest is the request message for the
+// RotateKeyVersion method.
+message RotateKeyVersionRequest {
+  // Required parent key identifier of the key version to rotate.
+  string parent = 1 [
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}

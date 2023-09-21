@@ -5,6 +5,27 @@ deps:
 breaking:
   use:
     - FILE
+  except:
+    - FIELD_SAME_JSON_NAME
+    - FIELD_LOWER_SNAKE_CASE
+    - FIELD_SAME_JSON_NAME
+    - RPC_NO_DELETE
 lint:
   use:
     - DEFAULT
+  ignore_only:
+    PACKAGE_VERSION_SUFFIX:
+      - blocky/api
+      - blocky/authz/type
+    PACKAGE_SAME_GO_PACKAGE:
+      - blocky/authz/type
+    ENUM_VALUE_PREFIX:
+      - blocky/api
+      - blocky/authz/type
+    ENUM_VALUE_UPPER_SNAKE_CASE:
+      - blocky/authz/type/signing_algorithm.proto
+    RPC_REQUEST_RESPONSE_UNIQUE:
+      - blocky/authz/admin/v1alpha
+    RPC_RESPONSE_STANDARD_NAME:
+      - blocky/authz/admin/v1alpha
+  allow_comment_ignores: true

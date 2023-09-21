@@ -17,13 +17,11 @@ syntax = "proto3";
 package blocky.authz.admin.v1alpha;
 
 import "blocky/authz/type/signing_algorithm.proto";
-import "google/api/field_behavior.proto";
 import "google/api/client.proto";
+import "google/api/field_behavior.proto";
 import "google/protobuf/duration.proto";
-import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
-
 
 // TokensAdminService is an administrative service for managing tokens.
 service TokensAdminService {

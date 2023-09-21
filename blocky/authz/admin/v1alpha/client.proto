@@ -1,0 +1,76 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/authz/type/signing_algorithm.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// Client represents an authorization client that can be used to authorize
+message Client {
+  option (google.api.resource) = {
+    type: "authz.blockyapis.com/Client",
+    pattern: "projects/{project}/instances/{instance}/clients/{client}"
+    singular: "client"
+    plural: "clients"
+  };
+
+  // Is a resource name of the client. It uniquely identifies the client.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Is a unique identifier of the client.
+  // This is a read-only field that defines a authorization client client-id.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The name of the client to display.
+  string display_name = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The time when the client was created.
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = IMMUTABLE];
+
+  // The time when the client was last updated.
+  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = IMMUTABLE];
+
+  // The authorization scopes that the client is allowed to use.
+  // If empty, and client is marked as secure,
+  // the client is allowed to use any scopes.
+  // If empty, and client is not marked as secure,
+  // the client is not allowed to use any scopes, until it is updated.
+  repeated string scopes = 6 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Scope"}
+  ];
+
+  // Signing algorithms this client is capable of using, in order of preference.
+  // If empty, the client is allowed to use all algorithms, and has no preferences.
+  repeated authz.type.SigningAlgorithm allowed_algorithms = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // Whether this client is allowed to use any authorization scopes.
+  bool is_secure = 8 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Credentials that can be used to authorize the client in the OAuth2 flow.
+message ClientCredentials {
+  // The client identifier credentials that can be used to authorize.
+  string client_id = 1 [(google.api.field_behavior) = IMMUTABLE];
+
+  // The client secret credentials that can be used to authorize.
+  string client_secret = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+}

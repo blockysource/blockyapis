@@ -1,0 +1,69 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/authz/admin/v1alpha/instance.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// The service that an application uses to manipulate Authorization service instances.
+service InstanceAdminService {
+  // Configures the authorization service.
+  option (google.api.oauth_scopes) = "https://www.blockyapis.com/auth/authz.admin";
+
+  // Patch an existing instance of an Authorization service.
+  rpc UpdateInstance(UpdateInstanceRequest) returns (Instance) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{instance.name=projects/*/instances/*}"
+      body: "instance"
+    };
+  }
+
+  // Gets the details of an instance of an Authorization service.
+  rpc GetInstance(GetInstanceRequest) returns (Instance) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/instances/*}"};
+  }
+}
+
+// The request for
+// [InstanceAdminService.UpdateInstance][google.cloud.blocky.authz.admin.v1alpha.InstanceAdminService.UpdateInstance].
+message UpdateInstanceRequest {
+  // The instance resource to update.
+  Instance instance = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Instance"}
+  ];
+
+  // The update mask applies to the instance. For the `FieldMask` definition,
+  // see https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask
+  google.protobuf.FieldMask update_mask = 2;
+}
+
+// The request for
+// [InstanceAdminService.GetInstance][google.cloud.blocky.authz.admin.v1alpha.InstanceAdminService.GetInstance].
+message GetInstanceRequest {
+  // The name of the instance resource to retrieve.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Instance"}
+  ];
+}

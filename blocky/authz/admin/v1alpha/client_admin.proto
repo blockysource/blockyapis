@@ -1,0 +1,172 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/api/annotations.proto";
+import "blocky/authz/admin/v1alpha/client.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// ClientAdminService is an administrative service for managing authorization clients.
+service ClientAdminService {
+  // Configures the authorization service.
+  option (google.api.oauth_scopes) = "https://www.blockyapis.com/auth/authz.admin";
+
+  // Creates a new authorization client with the specified name,
+  // and returns the new client.
+  // A newly created client will have a secret generated.
+  rpc CreateClient(CreateClientRequest) returns (Client) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*/instances/*}/clients",
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,client";
+  }
+
+  // Lists authorization clients matching the specified filter.
+  rpc ListClient(ListClientRequest) returns (ListClientResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/instances/*}/clients"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      order_by: "create_time desc",
+      pagination: {
+        max_size: 100,
+        default_size: 20,
+      }
+    };
+  }
+
+  // Gets an authorization client by its identifier.
+  rpc GetClient(GetClientRequest) returns (Client) {
+    option (google.api.http) = {get: "/v1alpha/{name=clients/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Updates an authorization client, and returns the updated client.
+  rpc UpdateClient(UpdateClientRequest) returns (Client) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{client.name=clients/*}",
+      body: "client"
+    };
+    option (google.api.method_signature) = "client";
+  }
+
+  // Deletes an authorization client.
+  rpc DeleteClient(DeleteClientRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha/{name=clients/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Shows the credentials for an authorization client.
+  rpc ShowClientCredentials(ShowClientCredentialsRequest) returns (ClientCredentials) {
+    option (google.api.http) = {get: "/v1alpha/{name=clients/*}/credentials"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// Request message for
+// [ClientAdminService.ListClient][blocky.authz.admin.v1alpha.ClientAdminService.ListClient].
+message CreateClientRequest {
+  // The parent instance where the client will be created.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Instance"}
+  ];
+
+  // User specified unique client identifier.
+  // The client id must be 1 to 63 characters long and contain only
+  // lowercase letters, numeric characters, and dashes.
+  // The id should only be a 'clientid' and not a full resource path:
+  // "projects/*/instances/*/clients/{clientid}".
+  // If not specified by the caller, the server will generate a random.
+  string client_id = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Client is a authorization client used to authorize requests.
+  Client client = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for
+// [ClientAdminService.ListClient][blocky.authz.admin.v1alpha.ClientAdminService.ListClient].
+message ListClientRequest {
+  // The parent instance whose clients are listed.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Instance"}
+  ];
+
+  // The maximum number of clients to return.
+  // The service may return fewer than this value.
+  // If unspecified, at most 20 clients will be returned.
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // A page token, received from a previous
+  // [ClientAdminService.ListClient][blocky.authz.admin.v1alpha.ClientAdminService.ListClient] call.
+  // Provide this to retrieve the subsequent page.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for
+// [ClientAdminService.ListClient][blocky.authz.admin.v1alpha.ClientAdminService.ListClient].
+message ListClientResponse {
+  // The list of clients.
+  repeated Client clients = 1;
+
+  // A token to retrieve the next page of results.
+  string next_page_token = 2;
+
+  // The total number of clients that matched the query.
+  int32 total_size = 3;
+}
+
+// Request message for
+// [ClientAdminService.GetClient][blocky.authz.admin.v1alpha.ClientAdminService.GetClient].
+message GetClientRequest {
+  // Required. The name of the client to retrieve.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for
+// [ClientAdminService.DeleteClient][blocky.authz.admin.v1alpha.ClientAdminService.DeleteClient].
+message DeleteClientRequest {
+  // The name of the client to delete.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Client"}
+  ];
+}
+
+// Request message for
+// [ClientAdminService.UpdateClient][blocky.authz.admin.v1alpha.ClientAdminService.UpdateClient].
+message UpdateClientRequest {
+  // The client to update.
+  Client client = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for
+// [ClientAdminService.ShowCredentials][blocky.authz.admin.v1alpha.ClientAdminService.ShowCredentials].
+message ShowClientCredentialsRequest {
+  // Required. The name of the client to retrieve credentials for.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Client"}
+  ];
+}

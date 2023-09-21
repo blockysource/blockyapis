@@ -1,0 +1,57 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// Is a authorization service instance resource.
+message Instance {
+  option (google.api.resource) = {
+    type: "authz.blockyapis.com/Instance"
+    pattern: "instances/{instance}"
+  };
+
+  // The unique name of the authorization service instance.
+  // Values are of the form:
+  // 'projects/{project}/instances/{instance}'.
+  // On a standalone authorization service, the instance identifier
+  // could be aliased to a 'default' instance.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The display name of the authorization service instance.
+  string display_name = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Creation timestamp of the instance.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Configuration for the authorization service instance.
+  InstanceConfig config = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}
+
+// Configuration for an authorization service instance.
+message InstanceConfig {
+  // The name of the service issuing tokens.
+  string issuer = 1;
+
+  // The rotation period for the service account key.
+  google.protobuf.Duration default_key_rotation_period = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}

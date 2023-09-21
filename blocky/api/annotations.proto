@@ -21,7 +21,6 @@ import "blocky/api/query_parameters.proto";
 import "google/protobuf/descriptor.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/api/annotations;blockyannnotations";
-option java_package = "com.blocky.api";
 
 // Extends message options to define query parameters.
 extend google.protobuf.MethodOptions {
@@ -71,8 +70,11 @@ enum FieldQueryOption {
   // Field forbids sorting.
   FORBID_SORTING = 2;
 
-  // Allow null values to be filtered.
-  NULLABLE = 3;
+  // NO_TEXT_SEARCH forbids text search on the field.
+  NO_TEXT_SEARCH = 3;
+
+  // NON_TRAVERSAL forbids traversal on the field.
+  NON_TRAVERSAL = 4;
 }
 
 extend google.protobuf.MessageOptions {

@@ -14,15 +14,13 @@
 
 syntax = "proto3";
 
-package blocky.authz.secure.v1alpha;
-
+package blocky.authz.e2e.v1alpha;
 
 import "blocky/authz/type/signing_algorithm.proto";
-import "google/protobuf/struct.proto";
 import "google/api/field_behavior.proto";
+import "google/protobuf/struct.proto";
 
-option go_package = "github.com/blockysource/go-genproto/authz/secure/v1alpha;authzsecurev1alpha";
-
+option go_package = "github.com/blockysource/go-genproto/authz/e2e/v1alpha;authze2ev1alpha";
 
 // The SignaturesService provides methods to sign and introspect custom claims.
 // This service should not be used to sign or introspect tokens,
@@ -41,9 +39,8 @@ service SignaturesService {
   rpc IntrospectSignature(IntrospectSignatureRequest) returns (IntrospectSignatureResponse);
 }
 
-
 // Request message for
-// [SignaturesService.SignClaims][blocky.authz.secure.v1alpha.SignaturesService.SignClaims].
+// [SignaturesService.SignClaims][blocky.authz.e2e.v1alpha.SignaturesService.SignClaims].
 message SignClaimsRequest {
   // The claims to sign.
   google.protobuf.Struct claims = 1 [(google.api.field_behavior) = REQUIRED];
@@ -53,13 +50,13 @@ message SignClaimsRequest {
   // and the default signing algorithm.
   // The signature type may be used to override the default key and algorithm.
   // This field relates to the signature type id in the
-  // [SignatureType][blocky.authz.secure.v1alpha.SignatureType] message.
+  // [SignatureType][blocky.authz.e2e.v1alpha.SignatureType] message.
   string signature_type_id = 2 [(google.api.field_behavior) = OPTIONAL];
 
   // Optional key id to use.
   // If not specified the default key id is used.
   // This field relates to the field:
-  // [Key][blocky.authz.secure.v1alpha.Key.key_id].
+  // [Key][blocky.authz.e2e.v1alpha.Key.key_id].
   string key_id = 3 [(google.api.field_behavior) = OPTIONAL];
 
   // Optional signing algorithm to use.
@@ -69,21 +66,21 @@ message SignClaimsRequest {
 }
 
 // Response message for
-// [SignaturesService.SignClaims][blocky.authz.secure.v1alpha.SignaturesService.SignClaims].
+// [SignaturesService.SignClaims][blocky.authz.e2e.v1alpha.SignaturesService.SignClaims].
 message SignClaimsResponse {
   // The compacted JWS token as defined in RFC 7515.
   string token = 1;
 }
 
 // Request message for
-// [SignaturesService.IntrospectSignature][blocky.authz.secure.v1alpha.SignaturesService.IntrospectSignature].
+// [SignaturesService.IntrospectSignature][blocky.authz.e2e.v1alpha.SignaturesService.IntrospectSignature].
 message IntrospectSignatureRequest {
   // Required signature to introspect.
   string signature = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Response message for
-// [SignaturesService.IntrospectSignature][blocky.authz.secure.v1alpha.SignaturesService.IntrospectSignature].
+// [SignaturesService.IntrospectSignature][blocky.authz.e2e.v1alpha.SignaturesService.IntrospectSignature].
 message IntrospectSignatureResponse {
   // The claims returned by the introspection.
   google.protobuf.Struct claims = 1;

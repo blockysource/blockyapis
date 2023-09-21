@@ -14,14 +14,13 @@
 
 syntax = "proto3";
 
-package blocky.authz.secure.v1alpha;
+package blocky.authz.e2e.v1alpha;
 
-import "google/protobuf/struct.proto";
-import "google/protobuf/empty.proto";
 import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/struct.proto";
 
-option go_package = "github.com/blockysource/go-genproto/authz/secure/v1alpha;authzsecurev1alpha";
-
+option go_package = "github.com/blockysource/go-genproto/authz/e2e/v1alpha;authze2ev1alpha";
 
 // TokensService is a service used to issue, refresh, revoke and introspect tokens.
 service TokensService {
@@ -43,9 +42,8 @@ service TokensService {
   rpc IntrospectToken(IntrospectTokenRequest) returns (IntrospectTokenResponse);
 }
 
-
 // Request message for
-// [TokensService.IssueToken][blocky.authz.secure.v1alpha.TokensService.IssueToken].
+// [TokensService.IssueToken][blocky.authz.e2e.v1alpha.TokensService.IssueToken].
 message IssueTokenRequest {
   // Required, the subject of the token.
   // The subject is the unique identifier of the user or service account that the token represents.
@@ -76,7 +74,6 @@ message IssueTokenRequest {
   // and no scope validation will be performed.
   // Note: this affects permissible scopes, not the validity of the token.
   string client_id = 5 [(google.api.field_behavior) = OPTIONAL];
-
 }
 
 // IssueTokenResponse is a response used to issue a token.
@@ -152,4 +149,3 @@ message IntrospectKeyTypeTokenResponse {
   int64 issued_at = 5;
   string issuer = 6;
 }
-
