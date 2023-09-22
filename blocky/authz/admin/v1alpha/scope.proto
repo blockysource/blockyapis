@@ -26,7 +26,7 @@ option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1al
 message Scope {
   option (google.api.resource) = {
     type: "authz.blockyapis.com/Scope"
-    pattern: "scopes/{scope}"
+    pattern: "projects/{project}/scopes/{scope}"
     singular: "scope"
     plural: "scopes"
   };

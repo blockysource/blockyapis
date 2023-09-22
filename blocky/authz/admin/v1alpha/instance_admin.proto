@@ -33,14 +33,15 @@ service InstanceAdminService {
   // Patch an existing instance of an Authorization service.
   rpc UpdateInstance(UpdateInstanceRequest) returns (Instance) {
     option (google.api.http) = {
-      patch: "/v1alpha/{instance.name=projects/*/instances/*}"
+      patch: "/v1alpha/{instance.name=projects/*/instance}"
       body: "instance"
     };
   }
 
   // Gets the details of an instance of an Authorization service.
   rpc GetInstance(GetInstanceRequest) returns (Instance) {
-    option (google.api.http) = {get: "/v1alpha/{name=projects/*/instances/*}"};
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/instance}"};
+    option (google.api.method_signature) = "name";
   }
 }
 

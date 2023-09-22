@@ -16,6 +16,7 @@ syntax = "proto3";
 
 package blocky.authz.admin.v1alpha;
 
+import "blocky/authz/type/signing_algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
@@ -27,21 +28,21 @@ option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1al
 message Instance {
   option (google.api.resource) = {
     type: "authz.blockyapis.com/Instance"
-    pattern: "instances/{instance}"
+    pattern: "projects/{project}/instance"
   };
 
   // The unique name of the authorization service instance.
   // Values are of the form:
-  // 'projects/{project}/instances/{instance}'.
+  // 'projects/{project}/instance'.
   // On a standalone authorization service, the instance identifier
   // could be aliased to a 'default' instance.
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
-  // The display name of the authorization service instance.
-  string display_name = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
-
   // Creation timestamp of the instance.
-  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Last modification timestamp of the instance.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // Configuration for the authorization service instance.
   InstanceConfig config = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
@@ -53,5 +54,34 @@ message InstanceConfig {
   string issuer = 1;
 
   // The rotation period for the service account key.
-  google.protobuf.Duration default_key_rotation_period = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+  google.protobuf.Duration key_rotation_period = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Access token configuration.
+  AccessTokenConfig access_token = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Refresh token configuration.
+  RefreshTokenConfig refresh_token = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}
+
+// Is a configuration for access tokens.
+message AccessTokenConfig {
+  // Preferred algorithm used to sign tokens.
+  authz.type.SigningAlgorithm algorithm = 1 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The duration of validity of the access token.
+  google.protobuf.Duration duration = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}
+
+// Is a configuration for the refresh tokens.
+message RefreshTokenConfig {
+  // Preferred algorithm used to sign tokens.
+  authz.type.SigningAlgorithm algorithm = 1 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The duration of validity of the refresh token.
+  google.protobuf.Duration duration = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The number of bytes used as a refresh token random value.
+  // By default this value is 128 bytes.
+  // This value should not be greater than 2048 bytes.
+  int32 token_size = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
 }

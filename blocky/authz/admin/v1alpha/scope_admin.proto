@@ -35,15 +35,15 @@ service ScopeAdminService {
   // Creates a new authorization scope.
   rpc CreateScope(CreateScopeRequest) returns (Scope) {
     option (google.api.http) = {
-      post: "/v1alpha/scopes",
-      body: "scope"
+      post: "/v1alpha/{parent=projects/*}/scopes",
+      body: "*"
     };
-    option (google.api.method_signature) = "scope";
+    option (google.api.method_signature) = "parent,scope";
   }
 
   // Lists authorization scopes that are registered with the service.
   rpc ListScope(ListScopeRequest) returns (ListScopeResponse) {
-    option (google.api.http) = {get: "/v1alpha/scopes"};
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/scopes"};
     option (blocky.api.query_params) = {
       order_by: "scope asc, create_time desc"
       pagination: {
@@ -51,18 +51,19 @@ service ScopeAdminService {
         default_size: 50,
       }
     };
+    option (google.api.method_signature) = "parent";
   }
 
   // Gets an authorization scope.
   rpc GetScope(GetScopeRequest) returns (Scope) {
-    option (google.api.http) = {get: "/v1alpha/{name=scopes/*}"};
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/scopes/*}"};
     option (google.api.method_signature) = "name";
   }
 
   // Updates an existing authorization scope with new information.
   rpc UpdateScope(UpdateScopeRequest) returns (Scope) {
     option (google.api.http) = {
-      patch: "/v1alpha/{scope.name=scopes/*}",
+      patch: "/v1alpha/{scope.name=projects/*/scopes/*}",
       body: "scope"
     };
     option (google.api.method_signature) = "scope";
@@ -70,36 +71,38 @@ service ScopeAdminService {
 
   // Deletes an authorization scope.
   rpc DeleteScope(DeleteScopeRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {delete: "/v1alpha/{name=scopes/*}"};
-    option (google.api.method_signature) = "scope";
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/scopes/*}"};
+    option (google.api.method_signature) = "name";
   }
 }
 
 // The request for
 // [ScopeAdminService.CreateScope][blocky.authz.admin.v1alpha.ScopeAdminService.CreateScope].
 message CreateScopeRequest {
-  // Required, the authorization scope to create.
-  Scope scope = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
-// The request for
-// [ScopeAdminService.GetScope][blocky.authz.admin.v1alpha.ScopeAdminService.GetScope].
-message GetScopeRequest {
-  // Required, authorization scope identifier and resource name.
-  string name = 1 [
+  // Required, the project to create authorization scope in.
+  string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "authz.blockysource.com/Scope"}
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
   ];
+
+  // Required, the authorization scope to create.
+  Scope scope = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 // The request for
 // [ScopeAdminService.ListScope][blocky.authz.admin.v1alpha.ScopeAdminService.ListScope].
 message ListScopeRequest {
+  // Required, the project to list authorization scopes from.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
   // The maximum number of items to return.
-  int32 page_size = 1;
+  int32 page_size = 2;
 
   // The next_page_token value returned from a previous List request, if any.
-  string page_token = 2;
+  string page_token = 3;
 }
 
 // The request for
@@ -114,6 +117,16 @@ message ListScopeResponse {
 }
 
 // The request for
+// [ScopeAdminService.GetScope][blocky.authz.admin.v1alpha.ScopeAdminService.GetScope].
+message GetScopeRequest {
+  // Required, authorization scope identifier and resource name.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/Scope"}
+  ];
+}
+
+// The request for
 // [ScopeAdminService.UpdateScope][blocky.authz.admin.v1alpha.ScopeAdminService.UpdateScope].
 message UpdateScopeRequest {
   // Required, authorization scope identifier and resource name.
@@ -123,6 +136,9 @@ message UpdateScopeRequest {
 // The request for
 // [ScopeAdminService.DeleteScope][blocky.authz.admin.v1alpha.ScopeAdminService.DeleteScope].
 message DeleteScopeRequest {
-  // Required, authorization scope identifier and resource name.
-  string scope = 1 [(google.api.field_behavior) = REQUIRED];
+  // Required scope resource name.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/Scope"}
+  ];
 }

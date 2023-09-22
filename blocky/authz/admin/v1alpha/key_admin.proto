@@ -25,10 +25,28 @@ import "google/api/resource.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
 
-// KeysAdminService is an administration service for the authorization keys.
-service KeysAdminService {
+// KeyAdminService is an administration service for the authorization keys.
+service KeyAdminService {
   // Configures the token scopes.
   option (google.api.oauth_scopes) = "https://www.blockyapis.com/auth/authz.admin";
+
+  // CreateKey creates a new authorization key.
+  // New key is neither active nor used in a set.
+  rpc CreateKey(CreateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*}/keys",
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,key";
+  }
+
+  // GetKey returns the specified authorization key.
+  // The name of the key may be used as:
+  // 'projects/{project}/keys/default' to get the default key for the project.
+  rpc GetKey(GetKeyRequest) returns (Key) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/keys/*}"};
+    option (google.api.method_signature) = "name";
+  }
 
   // ListKeys lists authorization keys that matches given request.
   rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
@@ -39,59 +57,107 @@ service KeysAdminService {
       },
       order_by: "created_at desc"
     };
-    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/instances/*}/keys"};
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/keys"};
     option (google.api.method_signature) = "parent";
   }
 
-  // CreateKey creates a new authorization key.
-  // New key is neither active nor used in a set.
-  rpc CreateKey(CreateKeyRequest) returns (Key) {
+  // Changes the default key for the project.
+  // The default key is used for signing and verification if no key is specified.
+  rpc SetDefaultKey(SetDefaultKeyRequest) returns (Key) {
     option (google.api.http) = {
-      post: "/v1alpha/{parent=projects/*/instances/*}/keys",
-      body: "key"
+      post: "/v1alpha/{name=projects/*/keys/*}:set_default",
+      body: "*"
     };
-    option (google.api.method_signature) = "parent,key";
+    option (google.api.method_signature) = "name";
   }
 
-  // ActivateKey activates an authorization key identified by the given key ID.
-  // Once activated the key is used for signing and verification.
-  // If the key is already active, this is a no-op.
-  // If the key is revoked, this function returns a FailedPrecondition error.
-  rpc ActivateKey(ActivateKeyRequest) returns (Key) {
+  // Creates a new key version and rotates the key.
+  rpc CreateKeyVersion(CreateKeyVersionRequest) returns (KeyVersion) {
     option (google.api.http) = {
-      post: "/v1alpha/{name=projects/*/instances/*/keys/*}:activate",
-      body: "*",
+      post: "/v1alpha/{parent=projects/*/keys/*}/versions",
+      body: "*"
     };
+    option (google.api.method_signature) = "parent,version";
+  }
+
+  // GetKeyVersion returns the specified key version.
+  rpc GetKeyVersion(GetKeyVersionRequest) returns (KeyVersion) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/keys/*/versions/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // ListKeyVersions lists authorization key versions that matches given request.
+  // The key versions are derived from the parent key.
+  rpc ListKeyVersions(ListKeyVersionsRequest) returns (ListKeyVersionsResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/keys/*}/versions"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 20,
+      }
+      order_by: "create_time desc"
+    };
+  }
+
+  // RevokeKeyVersion revokes an authorization key version.
+  // Once revoked the key version is no longer valid for signing and verification.
+  // If revoked key was the only active signing key, the system will not accept
+  // any new requests until a new key is created and activated.
+  rpc RevokeKeyVersion(RevokeKeyVersionRequest) returns (KeyVersion) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*/versions/*}:revoke"};
     option (google.api.method_signature) = "name";
   }
 }
 
-// Request message for
+// The request message for
 // [AuthzAdminService.CreateKey][blocky.authz.admin.v1alpha.AuthzAdminService.CreateKey].
 message CreateKeyRequest {
+  // Required. The resource name of the project in which to create the key.
+  // Format: 'projects/{project}'.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
   // Required, resource to create.
-  Key key = 1 [(google.api.field_behavior) = REQUIRED];
+  Key key = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Request message for
-// [AuthzAdminService.ListKeys][blocky.authz.admin.v1alpha.AuthzAdminService.ListKeys].
+// The request message for
+// [AuthzAdminService.GetKey][blocky.authz.admin.v1alpha.AuthzAdminService.GetKey].
+message GetKeyRequest {
+  // Required. The resource name of the key to retrieve.
+  // Format: 'projects/{project}/keys/{key}'.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"}
+  ];
+}
+
+// The request message for
+// [KeyAdminService.ListKeys][blocky.authz.admin.v1alpha.KeyAdminService.ListKeys].
 message ListKeysRequest {
+  // Required. The resource name of the project whose keys are to be listed.
+  // Format: 'projects/{project}'.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
   // Optional. The maximum number of Keys to return in the response. The
   // server allows a maximum of 300 Keys to return. If unspecified, the
   // server will use 50 as the default, unless its configuration specifies
   // a smaller default.
-  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
 
   // Optional. A pagination token returned from a previous call to
   // ListKeysRequest that indicates where this listing should continue from.
-  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
-
-  // Optional. Skips the specified number of keys in the result.
-  int32 skip = 3 [(google.api.field_behavior) = OPTIONAL];
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// Response message for
-// [AuthzAdminService.ListKeys][blocky.authz.admin.v1alpha.AuthzAdminService.ListKeys].
+// The response message for
+// [KeyAdminService.ListKeys][blocky.authz.admin.v1alpha.KeyAdminService.ListKeys].
 message ListKeysResponse {
   // List of keys matching the request.
   repeated Key keys = 1;
@@ -99,17 +165,75 @@ message ListKeysResponse {
   // Token to retrieve the next page of results, or empty if there are no
   // more results in the list.
   string next_page_token = 2;
-
-  // Total number of keys matching the request, regardless of the page size.
-  int32 total_size = 3;
 }
 
-// Request message for
-// [AuthzAdminService.ActivateKey][blocky.authz.admin.v1alpha.AuthzAdminService.ActivateKey].
-message ActivateKeyRequest {
-  // Resource name of the key to activate.
+// The request message for
+// [KeyAdminService.SetDefaultKey][blocky.authz.admin.v1alpha.KeyAdminService.SetDefaultKey].
+message SetDefaultKeyRequest {
+  // Required identifier of the key to set as default.
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "blocky.authz.admin.v1alpha.Key"}
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"}
   ];
+}
+
+// The request message for
+// [KeyAdminService.CreateKeyVersion][blocky.authz.admin.v1alpha.KeyAdminService.CreateKeyVersion].
+message CreateKeyVersionRequest {
+  // Required identifier of the key to create a version for.
+  string parent = 1 [
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Required, resource to create.
+  KeyVersion version = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+// [KeyAdminService.GetKeyVersion][blocky.authz.admin.v1alpha.KeyAdminService.GetKeyVersion].
+message GetKeyVersionRequest {
+  // Required identifier of the key version to get.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/KeyVersion"}
+  ];
+}
+
+// The request message for
+// [KeyAdminService.RevokeKeyVersion][blocky.authz.admin.v1alpha.KeyAdminService.RevokeKeyVersion].
+message RevokeKeyVersionRequest {
+  // Required identifier of the key to revoke.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/KeyVersion"}
+  ];
+}
+
+// The request message for
+// [KeyAdminService.ListKeyVersions][blocky.authz.admin.v1alpha.KeyAdminService.ListKeyVersions].
+message ListKeyVersionsRequest {
+  // Required identifier of the key to list versions for.
+  string parent = 1 [
+    (google.api.resource_reference) = {type: "authz.blockyapis.com/Key"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Optional page_size on the number of key versions to include in the response.
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional page token to continue listing key versions from.
+  // If not provided, the service will start listing from the beginning.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response message for
+// [KeyAdminService.ListKeyVersions][blocky.authz.admin.v1alpha.KeyAdminService.ListKeyVersions].
+message ListKeyVersionsResponse {
+  // List of key versions for the requested key.
+  repeated KeyVersion key_versions = 1;
+
+  // Token to continue listing key versions from.
+  // If there are no more key versions to list, the token is not included.
+  string next_page_token = 2;
 }

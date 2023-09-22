@@ -27,7 +27,7 @@ option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1al
 message Client {
   option (google.api.resource) = {
     type: "authz.blockyapis.com/Client",
-    pattern: "projects/{project}/instances/{instance}/clients/{client}"
+    pattern: "projects/{project}/clients/{client}"
     singular: "client"
     plural: "clients"
   };

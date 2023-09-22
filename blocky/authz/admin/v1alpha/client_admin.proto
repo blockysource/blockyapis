@@ -36,7 +36,7 @@ service ClientAdminService {
   // A newly created client will have a secret generated.
   rpc CreateClient(CreateClientRequest) returns (Client) {
     option (google.api.http) = {
-      post: "/v1alpha/{parent=projects/*/instances/*}/clients",
+      post: "/v1alpha/{parent=projects/*}/clients",
       body: "*"
     };
     option (google.api.method_signature) = "parent,client";
@@ -44,7 +44,7 @@ service ClientAdminService {
 
   // Lists authorization clients matching the specified filter.
   rpc ListClient(ListClientRequest) returns (ListClientResponse) {
-    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/instances/*}/clients"};
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/clients"};
     option (google.api.method_signature) = "parent";
     option (blocky.api.query_params) = {
       order_by: "create_time desc",
@@ -57,14 +57,14 @@ service ClientAdminService {
 
   // Gets an authorization client by its identifier.
   rpc GetClient(GetClientRequest) returns (Client) {
-    option (google.api.http) = {get: "/v1alpha/{name=clients/*}"};
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/clients/*}"};
     option (google.api.method_signature) = "name";
   }
 
   // Updates an authorization client, and returns the updated client.
   rpc UpdateClient(UpdateClientRequest) returns (Client) {
     option (google.api.http) = {
-      patch: "/v1alpha/{client.name=clients/*}",
+      patch: "/v1alpha/{client.name=projects/*/clients/*}",
       body: "client"
     };
     option (google.api.method_signature) = "client";
@@ -72,31 +72,31 @@ service ClientAdminService {
 
   // Deletes an authorization client.
   rpc DeleteClient(DeleteClientRequest) returns (google.protobuf.Empty) {
-    option (google.api.http) = {delete: "/v1alpha/{name=clients/*}"};
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/clients/*}"};
     option (google.api.method_signature) = "name";
   }
 
   // Shows the credentials for an authorization client.
   rpc ShowClientCredentials(ShowClientCredentialsRequest) returns (ClientCredentials) {
-    option (google.api.http) = {get: "/v1alpha/{name=clients/*}/credentials"};
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/clients/*}/credentials"};
     option (google.api.method_signature) = "name";
   }
 }
 
-// Request message for
+// The request message for
 // [ClientAdminService.ListClient][blocky.authz.admin.v1alpha.ClientAdminService.ListClient].
 message CreateClientRequest {
   // The parent instance where the client will be created.
   string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "authz.blockyapis.com/Instance"}
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
   ];
 
   // User specified unique client identifier.
   // The client id must be 1 to 63 characters long and contain only
   // lowercase letters, numeric characters, and dashes.
   // The id should only be a 'clientid' and not a full resource path:
-  // "projects/*/instances/*/clients/{clientid}".
+  // "projects/*/clients/{clientid}".
   // If not specified by the caller, the server will generate a random.
   string client_id = 2 [(google.api.field_behavior) = OPTIONAL];
 
@@ -104,13 +104,13 @@ message CreateClientRequest {
   Client client = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Request message for
+// The request message for
 // [ClientAdminService.ListClient][blocky.authz.admin.v1alpha.ClientAdminService.ListClient].
 message ListClientRequest {
   // The parent instance whose clients are listed.
   string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "authz.blockyapis.com/Instance"}
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
   ];
 
   // The maximum number of clients to return.
@@ -124,7 +124,7 @@ message ListClientRequest {
   string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// Response message for
+// The response message for
 // [ClientAdminService.ListClient][blocky.authz.admin.v1alpha.ClientAdminService.ListClient].
 message ListClientResponse {
   // The list of clients.
@@ -132,19 +132,16 @@ message ListClientResponse {
 
   // A token to retrieve the next page of results.
   string next_page_token = 2;
-
-  // The total number of clients that matched the query.
-  int32 total_size = 3;
 }
 
-// Request message for
+// The request message for
 // [ClientAdminService.GetClient][blocky.authz.admin.v1alpha.ClientAdminService.GetClient].
 message GetClientRequest {
   // Required. The name of the client to retrieve.
   string name = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Request message for
+// The request message for
 // [ClientAdminService.DeleteClient][blocky.authz.admin.v1alpha.ClientAdminService.DeleteClient].
 message DeleteClientRequest {
   // The name of the client to delete.
@@ -154,14 +151,14 @@ message DeleteClientRequest {
   ];
 }
 
-// Request message for
+// The request message for
 // [ClientAdminService.UpdateClient][blocky.authz.admin.v1alpha.ClientAdminService.UpdateClient].
 message UpdateClientRequest {
   // The client to update.
   Client client = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Request message for
+// The request message for
 // [ClientAdminService.ShowCredentials][blocky.authz.admin.v1alpha.ClientAdminService.ShowCredentials].
 message ShowClientCredentialsRequest {
   // Required. The name of the client to retrieve credentials for.

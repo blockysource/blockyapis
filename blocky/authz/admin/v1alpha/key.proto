@@ -30,13 +30,13 @@ option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1al
 message Key {
   option (google.api.resource) = {
     type: "authz.blockyapis.com/Key"
-    pattern: "projects/{project}/instances/{instance}/keys/{key}"
+    pattern: "projects/{project}/keys/{key}"
     singular: "key"
     plural: "keys"
   };
 
   // Name of the key.
-  // Format: 'projects/{project}/instances/{instance}/keys/{key}'
+  // Format: 'projects/{project}/keys/{key}'
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // Key ID of the key.
@@ -86,4 +86,43 @@ message Key {
 
   // Is the number of key versions.
   int32 versions = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Is the default key used by the
+  bool is_default = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// KeyVersion represents a version of a key.
+message KeyVersion {
+  option (google.api.resource) = {
+    type: "authz.blockyapis.com/KeyVersion"
+    pattern: "projects/{project}/keys/{key}/versions/{version}"
+    plural: "key_versions"
+    singular: "key_version"
+  };
+
+  // The resource name of the key version.
+  // Format: `projects/{project}/keys/{key}/versions/{version}`
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The version of the key.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The creation time of the key version.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Algorithms that this key vesion supports.
+  // These are current key algorithms that are assigned
+  // during the key rotation (creation).
+  repeated authz.type.SigningAlgorithm algorithms = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The key version number for the parent.
+  // All the key versions rotated from the same parent key have the same version number.
+  int32 version_number = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Revocation time of the key version.
+  // If the key version was revoked, it is no longer used for signing and verification.
+  // This version is not included in the public JWK set.
+  // Once rotated, a new key version is no longer marked as revoked.
+  // Remains null if the key version was not revoked.
+  google.protobuf.Timestamp revoke_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
