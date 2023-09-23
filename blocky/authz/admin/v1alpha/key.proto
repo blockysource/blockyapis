@@ -27,6 +27,10 @@ option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1al
 // Key is a representation of an authorization key.
 // It contains information about the key, such as its ID, algorithm, name and
 // creation time, as well as information about its activation and rotation.
+// The server automatically creates an alias 'default' for a key marked as
+// default.
+// The 'default' key could be identified by the name:
+// 'projects/{project}/keys/default'.
 message Key {
   option (google.api.resource) = {
     type: "authz.blockyapis.com/Key"
@@ -82,7 +86,7 @@ message Key {
   // The higher the priority, the more likely the key will be used for signing.
   // If not provided, the key will be assigned the default priority 0.
   // The keys in the JWK set are sorted by priority in descending order.
-  int32 priority = 10;
+  int32 priority = 10 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
 
   // Is the number of key versions.
   int32 versions = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
@@ -91,20 +95,24 @@ message Key {
   bool is_default = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
-// KeyVersion represents a version of a key.
+// KeyVersion is a representation of a key version.
+// The server creates an alias for the 'latest' key version, which is the most
+// recent key version. This alias could be used in the key version name as:
+// 'projects/{project}/keys/{key}/versions/latest'.
+// Only the most recent key version could be used to sign the tokens,
+// However all, non-revoked key versions could be used for verification.
 message KeyVersion {
   option (google.api.resource) = {
     type: "authz.blockyapis.com/KeyVersion"
-    pattern: "projects/{project}/keys/{key}/versions/{version}"
-    plural: "key_versions"
-    singular: "key_version"
+    pattern: "projects/{project}/keys/{key}/versions/{key_version}"
   };
 
   // The resource name of the key version.
-  // Format: `projects/{project}/keys/{key}/versions/{version}`
+  // Format: `projects/{project}/keys/{key}/versions/{key_version}`
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
-  // The version of the key.
+  // The unique server-generated UUID identifier for the key version.
+  // It could be used as the key version identifier in its resource name.
   string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The creation time of the key version.

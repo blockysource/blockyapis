@@ -16,7 +16,9 @@ syntax = "proto3";
 
 package blocky.authz.e2e.v1alpha;
 
+import "blocky/authz/type/signing_algorithm.proto";
 import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/struct.proto";
 
@@ -45,6 +47,15 @@ service TokensService {
 // Request message for
 // [TokensService.IssueToken][blocky.authz.e2e.v1alpha.TokensService.IssueToken].
 message IssueTokenRequest {
+  // ClientCredentials is a set of credentials used to identify a client.
+  message ClientCredentials {
+    // The public identifier of the client.
+    string client_id = 1 [(google.api.field_behavior) = REQUIRED];
+
+    // The secret assigned to given client.
+    string client_secret = 2 [(google.api.field_behavior) = OPTIONAL];
+  }
+
   // Required, the subject of the token.
   // The subject is the unique identifier of the user or service account that the token represents.
   string subject = 1 [(google.api.field_behavior) = REQUIRED];
@@ -53,7 +64,10 @@ message IssueTokenRequest {
   // If not provided, the token will be signed with the default key.
   // If provided, it must be a valid key identifier, otherwise the request will fail,
   // with the error NotFound.
-  string key_id = 2 [(google.api.field_behavior) = OPTIONAL];
+  string key = 2 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/KeyVersion"}
+  ];
 
   // Optional custom claims to be added to the token.
   // By default, the token will contain the following claims:
@@ -69,23 +83,44 @@ message IssueTokenRequest {
   // The scope is a list of strings that represent the permissions that the token grants.
   string scope = 4 [(google.api.field_behavior) = REQUIRED];
 
+  // Algorithm used to sign the token.
+  // If the given algorithm is not supported by the system, the request will fail with the error InvalidArgument.
+  // If not provided, the token will be signed with the default algorithm for the key.
+  blocky.authz.type.SigningAlgorithm algorithm = 5 [(google.api.field_behavior) = OPTIONAL];
+
   // Optional, identifier of the client that is requesting the token.
-  // If not provided, the token will be issued for the default client,
+  // If not provided, the token
   // and no scope validation will be performed.
   // Note: this affects permissible scopes, not the validity of the token.
-  string client_id = 5 [(google.api.field_behavior) = OPTIONAL];
+  ClientCredentials client = 6 [(google.api.field_behavior) = REQUIRED];
 }
 
 // IssueTokenResponse is a response used to issue a token.
 message IssueTokenResponse {
-  // Is the access token
+  // Is the access token that can be used to authenticate requests.
   string access_token = 1;
-  string refresh_token = 2;
+
+  // Is an optional refresh token that can be used to issue new tokens.
+  string refresh_token = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Is the expiration time of the access token.
   int64 expires_in = 3;
 }
 
+// IntrospectTokenRequest is a request used to introspect a token.
+message IntrospectTokenRequest {
+  // A required token to introspect.
+  string token = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The response message for
+// [TokensService.IntrospectToken][blocky.authz.e2e.v1alpha.TokensService.IntrospectToken].
 message IntrospectTokenResponse {
+  // Are the standard claims of the token.
   StandardTokenClaims claims = 1;
+
+  // Are the unspecified custom claims encoded in the token.
+  google.protobuf.Struct custom_claims = 2;
 }
 
 message RefreshTokenRequest {
@@ -103,22 +138,42 @@ message RevokeRefreshTokenRequest {
 
 // IntrospectedTokenClaims is a set of claims that are returned when introspecting a token.
 message StandardTokenClaims {
+  // Is the token unique identifier.
   string token_id = 1 [json_name = "jti"];
-  bool active = 2;
-  string subject = 3 [json_name = "sub,omitempty"];
-  int64 expires_at = 4 [json_name = "exp,omitempty"];
-  int64 issued_at = 5 [json_name = "iat,omitempty"];
-  int64 revoked_at = 6 [json_name = "rat,omitempty"];
-  int64 not_before = 7 [json_name = "nbf,omitempty"];
-  string issuer = 8 [json_name = "iss,omitempty"];
-  string scope = 9;
-  string audience = 10 [json_name = "aud,omitempty"];
-  string client_id = 11 [json_name = "client_id,omitempty"];
-}
 
-// IntrospectTokenRequest is a request used to introspect a token.
-message IntrospectTokenRequest {
-  string token = 1;
+  // States if the token is active.
+  bool active = 2;
+
+  // Is the subject of the token.
+  string subject = 3 [json_name = "sub,omitempty"];
+
+  // Is the expiration time of the token.
+  int64 expires_at = 4 [json_name = "exp,omitempty"];
+
+  // Is the time the token was issued.
+  int64 issued_at = 5 [json_name = "iat,omitempty"];
+
+  // Is the time the token was revoked.
+  int64 revoked_at = 6 [
+    json_name = "rat,omitempty",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Is the time the token was not valid before.
+  int64 not_before = 7 [
+    json_name = "nbf,omitempty",
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Is the issuer of the token.
+  string issuer = 8 [json_name = "iss,omitempty"];
+
+  // Is a comma separated list of scopes that the token grants.
+  string scope = 9;
+
+  // Is the audience of the token,
+  repeated string audience = 10 [json_name = "aud,omitempty"];
+  string client_id = 11 [json_name = "client_id,omitempty"];
 }
 
 // IssueKeyTypeTokenRequest is a request used to sign a user defined payload.

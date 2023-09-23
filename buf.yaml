@@ -13,6 +13,9 @@ breaking:
 lint:
   use:
     - DEFAULT
+  except:
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    - RPC_RESPONSE_STANDARD_NAME
   ignore_only:
     PACKAGE_VERSION_SUFFIX:
       - blocky/api

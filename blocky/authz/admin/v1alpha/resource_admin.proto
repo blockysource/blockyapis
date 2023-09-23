@@ -1,0 +1,310 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/api/annotations.proto";
+import "blocky/authz/admin/v1alpha/resource.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// Is an administrative service for the resources in the Blocky Authz API.
+service ResourceAdminService {
+  option (google.api.oauth_scopes) = "https://www.blockyapis.com/authz.admin";
+
+  // Creates a new resource manager within given project.
+  rpc CreateResourceManager(CreateResourceManagerRequest) returns (ResourceManager) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*}/resourceManagers",
+      body: "*"
+    };
+  }
+
+  // Gets a resource manager.
+  rpc GetResourceManager(GetResourceManagerRequest) returns (ResourceManager) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/resourceManagers/*}"};
+  }
+
+  // Gets a list of resource managers.
+  rpc ListResourceManagers(ListResourceManagersRequest) returns (ListResourceManagersResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/resourceManagers"};
+    option (blocky.api.query_params) = {
+      order_by: "create_time desc"
+      pagination: {
+        max_size: 100,
+        default_size: 50,
+      }
+    };
+  }
+
+  // Updates an existing resource manager with new information.
+  rpc UpdateResourceManager(UpdateResourceManagerRequest) returns (ResourceManager) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{resource_manager.name=projects/*/resourceManagers/*}",
+      body: "resource_manager"
+    };
+  }
+
+  // Deletes a resource manager along with all its dependent permissions.
+  rpc DeleteResourceManager(DeleteResourceRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/resourceManagers/*}"};
+  }
+
+  // Creates an alias for a resource manager.
+  // If the alias already exists, the former aliased resource manager
+  // will have no alias.
+  rpc AliasResourceManager(AliasResourceRequest) returns (ResourceManager) {
+    option (google.api.http) = {
+      post: "/v1alpha/{name=projects/*/resourceManagers/*}:alias",
+      body: "*"
+    };
+  }
+
+  // Creates a new authorization resource permission.
+  rpc CreateResourcePermission(CreateResourcePermissionRequest) returns (ResourcePermission) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*/resourceManagers/*}/resourcePermissions",
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,resource_permission";
+  }
+
+  // Lists authorization resource permissions that are registered with the service.
+  rpc ListResourcePermission(ListResourcePermissionRequest) returns (ListResourcePermissionResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/resourceManagers/*}/resourcePermissions"};
+    option (blocky.api.query_params) = {
+      order_by: "display_name asc"
+      pagination: {
+        max_size: 100,
+        default_size: 50,
+      }
+    };
+    option (google.api.method_signature) = "parent";
+  }
+
+  // Gets an existing resource permission.
+  rpc GetResourcePermission(GetResourcePermissionRequest) returns (ResourcePermission) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/resourceManagers/*/resourcePermissions/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Updates an existing authorization resource permission with new information.
+  rpc UpdateResourcePermission(UpdateResourcePermissionRequest) returns (ResourcePermission) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{resource_permission.name=projects/*/resourceManagers/*/resourcePermissions/*}",
+      body: "resource_permission"
+    };
+    option (google.api.method_signature) = "resource_permission";
+  }
+
+  // Deletes an authorization resource permission.
+  rpc DeleteResourcePermission(DeleteResourcePermissionRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/resourceManagers/*/resourcePermissions/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Creates an alias for an authorization resource permission.
+  // If the alias already exists, the former aliased resource permission will have
+  // no alias.
+  rpc AliasResourcePermission(AliasResourcePermissionRequest) returns (ResourcePermission) {
+    option (google.api.http) = {
+      post: "/v1alpha/{name=projects/*/resourceManagers/*}/resourcePermissions/*}:alias",
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent,resource_permission";
+  }
+}
+
+// CreateResourceManagerRequest is the request message for CreateResourceManager.
+message CreateResourceManagerRequest {
+  // Required. The project in which to create the resource manager.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Required. The resource manager to create.
+  ResourceManager resource_manager = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // An optional user-defined identifier for the resource manager.
+  // The identifier can be up to 128 characters long and can be either
+  // alphanumeric (e.g., "myresource") or a UUID (e.g.,
+  // "12345678-9ABC-DEF0-1234-56789ABCDEF0").
+  // This field is a part of the resource manager's name. The
+  // resource manager name and identifier must be unique within a project.
+  string resource_manager_id = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The request message for
+// [ResourceAdminService.GetResourceManager][google.cloud.blocky.authz.admin.v1alpha.ResourceAdminService.GetResourceManager].
+message GetResourceManagerRequest {
+  // The name of the resource manager to retrieve.
+  // Format: projects/{project}/resourceManagers/{resource_manager}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourceManager"}
+  ];
+}
+
+// The request message for
+// [ResourceAdminService.ListResourceManagers][google.cloud.blocky.authz.admin.v1alpha.ResourceAdminService.ListResourceManagers].
+message ListResourceManagersRequest {
+  // Required. The project whose resource managers are to be listed.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
+  // The maximum number of items to return.
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The next_page_token value returned from a previous List request, if any.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response message for
+// [ResourceAdminService.ListResourceManagers][google.cloud.blocky.authz.admin.v1alpha.ResourceAdminService.ListResourceManagers].
+message ListResourceManagersResponse {
+  // List of resource managers.
+  repeated ResourceManager resource_managers = 1;
+
+  // The pagination token to retrieve the next page of results. If the value is
+  // empty, no further results remain.
+  string next_page_token = 2;
+}
+
+// The request message for
+// [ResourceAdminService.UpdateResourceManager][google.cloud.blocky.authz.admin.v1alpha.ResourceAdminService.UpdateResourceManager].
+message UpdateResourceManagerRequest {
+  // Required. The resource manager to update.
+  ResourceManager resource_manager =
+ 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+// [ResourceAdminService.DeleteResourceManager][google.cloud.blocky.authz.admin.v1alpha.ResourceAdminService.DeleteResourceManager].
+message DeleteResourceRequest {
+  // Required. The name of the resource manager to delete.
+  // Format: projects/{project}/resourceManagers/{resource_manager}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourceManager"}
+  ];
+}
+
+// The request message for
+// [ResourceAdminService.AliasResourceManager][google.cloud.blocky.authz.admin.v1alpha.ResourceAdminService.AliasResourceManager].
+message AliasResourceRequest {
+  // The name of the resource manager to set alias.
+  // Format: projects/{project}/resourceManagers/{resource_manager}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourceManager"}
+  ];
+
+  // The alias to use for the resource manager.
+  // It could be use instead of the resource manager identifier.
+  // I.e.: projects/{project}/resourceManagers/{alias}
+  string alias_id = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request for
+// [ResourceAdminService.CreateResourcePermission][blocky.authz.admin.v1alpha.ResourceAdminService.CreateResourcePermission].
+message CreateResourcePermissionRequest {
+  // Required, parent resource manager to create resource permission.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourceManager"}
+  ];
+
+  // Required resource permission to create.
+  ResourcePermission resource_permission = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request for
+// [ResourceAdminService.ListResourcePermission][blocky.authz.admin.v1alpha.ResourceAdminService.ListResourcePermission].
+message ListResourcePermissionRequest {
+  // Required, the project to list authorization resource_permissions from.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourceManager"}
+  ];
+
+  // The maximum number of items to return.
+  int32 page_size = 2;
+
+  // The next_page_token value returned from a previous List request, if any.
+  string page_token = 3;
+}
+
+// The request for
+// [ResourceAdminService.ListResourcePermission][blocky.authz.admin.v1alpha.ResourceAdminService.ListResourcePermission].
+message ListResourcePermissionResponse {
+  // List of authorization resource_permissions.
+  repeated ResourcePermission resource_permissions = 1;
+
+  // The pagination token to retrieve the next page of results. If the value is
+  // empty, no further results remain.
+  string next_page_token = 2;
+}
+
+// The request for
+// [ResourceAdminService.GetResourcePermission][blocky.authz.admin.v1alpha.ResourceAdminService.GetResourcePermission].
+message GetResourcePermissionRequest {
+  // Required, authorization resource_permission identifier and resource name.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourcePermission"}
+  ];
+}
+
+// The request for
+// [ResourceAdminService.UpdateResourcePermission][blocky.authz.admin.v1alpha.ResourceAdminService.UpdateResourcePermission].
+message UpdateResourcePermissionRequest {
+  // Required, authorization resource_permission identifier and resource name.
+  ResourcePermission resource_permission = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request for
+// [ResourceAdminService.DeleteResourcePermission][blocky.authz.admin.v1alpha.ResourceAdminService.DeleteResourcePermission].
+message DeleteResourcePermissionRequest {
+  // Required resource_permission resource name.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourcePermission"}
+  ];
+}
+
+// The request for
+// [ResourceAdminService.AliasResourcePermission][blocky.authz.admin.v1alpha.ResourceAdminService.AliasResourcePermission].
+message AliasResourcePermissionRequest {
+  // The name of the resource permission to set alias.
+  // Format: projects/{project}/resourceManagers/{resource_manager}/resource_permissions/{resource_permission}
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "authz.blockysource.com/ResourcePermission"}
+  ];
+
+  // The alias to use for the resource permission.
+  // It could be use instead of the resource permission identifier.
+  // I.e.: projects/{project}/resourceManagers/{resource_manager}/resource_permissions/{alias}
+  string alias_id = 2 [(google.api.field_behavior) = REQUIRED];
+}

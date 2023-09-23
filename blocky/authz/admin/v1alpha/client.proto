@@ -35,9 +35,9 @@ message Client {
   // Is a resource name of the client. It uniquely identifies the client.
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
-  // Is a unique identifier of the client.
-  // This is a read-only field that defines a authorization client client-id.
-  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Is a unique alias identifier of the client.
+  // If a uniqueness constraint is violated, a `ALREADY_EXISTS` error is returned.
+  string alias = 2 [(google.api.field_behavior) = OPTIONAL];
 
   // The name of the client to display.
   string display_name = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
@@ -63,6 +63,7 @@ message Client {
   repeated authz.type.SigningAlgorithm allowed_algorithms = 7 [(google.api.field_behavior) = OPTIONAL];
 
   // Whether this client is allowed to use any authorization scopes.
+  // A secure client is meant to be used by a trusted application
   bool is_secure = 8 [(google.api.field_behavior) = OPTIONAL];
 }
 

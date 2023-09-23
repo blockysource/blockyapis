@@ -14,11 +14,11 @@
 
 syntax = "proto3";
 
-package blocky.authz.v1alpha;
+package blocky.authz.public.v1alpha;
 
 import "blocky/authz/type/jwk.proto";
 
-option go_package = "github.com/blockysource/go-genproto/authz/v1alpha;authz1alpha";
+option go_package = "github.com/blockysource/go-genproto/authz/public/v1alpha;authzpublicv1alpha";
 
 // KeysService is a service that provides well-known public keys.
 service KeysService {

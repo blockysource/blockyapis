@@ -1,0 +1,117 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.admin.v1alpha;
+
+import "blocky/authz/type/signing_algorithm.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/authz/admin/v1alpha;authzadminv1alpha";
+
+// A resource manager describes a valid any service that provides some resources
+// and is expected to be secured by the Authorization Server.
+// The resource service identified by its resource manager is also an
+// audience of the authorization tokens.
+// Each resource manager may manage access to its resources using different
+// permission scopes.
+// A resource manager may also specify which signing algorithms it supports,
+// and which signing algorithms are required for the access tokens.
+message ResourceManager {
+  option (google.api.resource) = {
+    type: "authz.blockyapis.com/ResourceManager"
+    pattern: "projects/{project}/resourceManagers/{resourceManager}"
+    singular: "resourceManager"
+    plural: "resourceManagers"
+  };
+
+  // Is a unique identifier of the resource manager.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Is a system-assigned unique identifier for this resource manager.
+  // The format of this identifier is a UUID.s
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Is a unique human-readable name of the resource manager.
+  // If defined it may be used as an alias for the resource manager identifier.
+  // I.e.:  projects/{project}/resourceManagers/my-resource-manager
+  // The alias is mutable by custom AliasResourceManager RPC.
+  string alias = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Is a human-readable name of the resource manager.
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Is a human-readable name of the resource manager.
+  string display_name = 5 [(google.api.field_behavior) = REQUIRED];
+
+  // Is a token audience name for this resource manager.
+  // The audience name is used by the token issuer to identify the resource manager.
+  // If not defined, the audience name is the same as the resource manager name.
+  string audience = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // URIs associated with this resource manager.
+  repeated string uris = 7 [(google.api.field_behavior) = REQUIRED];
+
+  // Is a human-readable description of the resource manager.
+  string description = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // Supported signing algorithms for this resource manager.
+  // If not defined, all signing algorithms are supported.
+  repeated blocky.authz.type.SigningAlgorithm signing_algorithms = 9 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Determines a set of access permissions for a particular resource, identified
+message ResourcePermission {
+  option (google.api.resource) = {
+    type: "authz.blockyapis.com/Scope"
+    pattern: "projects/{project}/resourceManagers/{resourceManager}/resourcePermissions/{resourcePermission}"
+    singular: "resourcePermission"
+    plural: "resourcePermissions"
+  };
+
+  // The resource permission identifier and resource name.
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Server-generated unique identifier for the scope.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The authorization scope string that is used in the OAuth 2.0 access and refresh tokens.
+  // It is used as OAuth 2.0 scope parameter.
+  // The scope must be unique within the whole project.
+  string scope = 3 [(google.api.field_behavior) = IMMUTABLE];
+
+  // The human-readable alias of resource permission identifier.
+  // It needs to be unique in the parent resource manager.
+  // As a good practice the alias might correspond to the scope,
+  // which guarantees uniqueness of the scope within the project.
+  string alias = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The date of creation of the resource permission.
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The date of the last modification of the resource permission.
+  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The human-readable display name of the resource permission.
+  string display_name = 7 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The human-readable description of the resource permission.
+  string description = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // Etag of the resource permission.
+  string etag = 9;
+}

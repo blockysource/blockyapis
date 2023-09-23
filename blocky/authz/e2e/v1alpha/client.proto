@@ -1,0 +1,53 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.authz.e2e.v1alpha;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+
+option go_package = "github.com/blockysource/go-genproto/authz/e2e/v1alpha;authze2ev1alpha";
+
+// ClientService is the service that provides the e2e client with the
+// client credentials for a client.
+service ClientService {
+  // ShowClientCredentials shows the client credentials for a client.
+  // It may be used by the e2e client to obtain the client credentials.
+  rpc ShowClientCredentials(ShowClientCredentialsRequest) returns (ClientCredentials);
+}
+
+// ShowClientCredentialsRequest is the request message for ShowClientCredentials.
+message ShowClientCredentialsRequest {
+  // Is a resource reference to the client for which the client credentials
+  // should be shown.
+  // The format of a client resource name is:
+  // 'projects/{project}/clients/{client}'.
+  // If the client has an alias it can be used instead of the client id in the
+  // resource name.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference).type = "authz.blockyapis.com/Client"
+  ];
+}
+
+// ClientCredentials represents the client credentials for a client.
+message ClientCredentials {
+  // Public client identifier.
+  string client_id = 1 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Client secret used for authentication.
+  string client_secret = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
