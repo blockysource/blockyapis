@@ -55,7 +55,7 @@ message ResourceManager {
   // Is a human-readable name of the resource manager.
   google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // Is a human-readable name of the resource manager.
+  // Is a human-readable na/me of the resource manager.
   string display_name = 5 [(google.api.field_behavior) = REQUIRED];
 
   // Is a token audience name for this resource manager.
@@ -87,6 +87,8 @@ message ResourcePermission {
   string name = 1 [(google.api.field_behavior) = IDENTIFIER];
 
   // Server-generated unique identifier for the scope.
+  // It could be used as an alias for the resource permission identifier.
+  // I.e.:  projects/{project}/resourceManagers/{resourceManager}/resourcePermissions/{uid}
   string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The authorization scope string that is used in the OAuth 2.0 access and refresh tokens.

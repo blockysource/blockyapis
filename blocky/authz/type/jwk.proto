@@ -28,7 +28,7 @@ option go_package = "github.com/blockysource/go-genproto/blocky/authz/type/jwkpb
 message JWK {
   string use = 1;
   string kty = 2;
-  string kid = 3 [(google.api.resource_reference) = {type: "authz.blockyapis.com/KeyVersion"}];
+  string kid = 3 [(google.api.resource_reference) = {type: "authz.blockyapis.com/KeyRevision"}];
   string crv = 4;
   string alg = 5;
   bytes k = 6;
@@ -46,5 +46,4 @@ message JWK {
   string x5u = 18;
   bytes x5t_sha1 = 19 [json_name = "x5t"];
   bytes x5t_sha256 = 20 [json_name = "x5t#S256"];
-  int64 created_at = 21; // created_at is not a standard JWK field, but contains some relevant information used internally by authz service.
 }
