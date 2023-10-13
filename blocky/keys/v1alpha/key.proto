@@ -1,0 +1,302 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.keys.v1alpha;
+
+import "blocky/keys/type/keys.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/keys/v1alpha;keysv1alpha";
+
+// The operations that the key can be used for.
+enum KeyOperations {
+  // Default value. This value is unused.
+  KEY_OPERATIONS_UNSPECIFIED = 0;
+
+  // The key can be used for signing operations.
+  SIGN = 1;
+
+  // The key can be used for verifying operations.
+  VERIFY = 2;
+
+  // The key can be used for encrypting operations.
+  ENCRYPT = 3;
+
+  // The key can be used for decrypting operations.
+  DECRYPT = 4;
+
+  // The key can be used for wrapping operations.
+  WRAP = 5;
+
+  // The key can be used for unwrapping operations.
+  UNWRAP = 6;
+
+  // The key can be used for deriving operations.
+  DERIVE_KEY = 7;
+
+  // The key can be used for deriving operations.
+  DERIVE_BITS = 8;
+}
+
+// KeyAlgorithm represents the cryptographic algorithm family used with the key.
+enum KeyAlgorithm {
+  KEY_ALGORITHM_UNSPECIFIED = 0;
+
+  // Defines No digital signature
+  NONE = 1;
+  // Defines HMAC SHA-256 signing algorithm.
+  HS256 = 2;
+  // Defines HMAC SHA-384 signing algorithm.
+  HS384 = 3;
+  // Defines HMAC SHA-512 signing algorithm.
+  HS512 = 4;
+  // Defines RSA PKCS1 v1.5 signing algorithm.
+  RS256 = 5;
+  // Defines RSA PSS signing algorithm with SHA-384 hash.
+  RS384 = 6;
+  // Defines RSA PSS signing algorithm with SHA-512 hash.
+  RS512 = 7;
+  // Defines Elliptic Curve signing algorithm with P-256 curve SHA-256 hash.
+  ES256 = 8;
+  // Defines Elliptic Curve signing algorithm with P-384 curve SHA-384 hash.
+  ES384 = 9;
+  // Defines Elliptic Curve signing algorithm with P-521 curve SHA-512 hash.
+  ES512 = 10;
+  // Defines RSASSA-PSS signing algorithm with SHA-256 hash.
+  PS256 = 11;
+  // Defines RSASSA-PSS signing algorithm with SHA-384 hash.
+  PS384 = 12;
+  // Defines RSASSA-PSS signing algorithm with SHA-512 hash.
+  PS512 = 13;
+  // Defines EdDSA - Edwards-Curve Digital Signature Algorithm  (Ed25519) signing algorithm.
+  EdDSA = 14;
+
+  // KeyManagementType of type Edwards-curve Digital Signature Algorithm (EdDSA)
+  ED25519 = 15;
+  // KeyManagementType of type RSA-PKCS1v1.5
+  RSA1_5 = 16;
+  // KeyManagementType of type RSA-OAEP-SHA1
+  RSA_OAEP = 17;
+  // KeyManagementType of type RSA-OAEP-SHA256
+  RSA_OAEP_256 = 18;
+  // KeyManagementType of type AES key wrap (128)
+  A128KW = 19;
+  // KeyManagementType of type AES key wrap (192)
+  A192KW = 20;
+  // KeyManagementType of type AES key wrap (256)
+  A256KW = 21;
+  // KeyManagementType of type Direct encryption
+  DIRECT = 22;
+  // KeyManagementType of type ECDH-ES
+  ECDH_ES = 23;
+  // KeyManagementType of type ECDH-ES + AES key wrap (128)
+  ECDH_ES_A128KW = 24;
+  // KeyManagementType of type ECDH-ES + AES key wrap (192)
+  ECDH_ES_A192KW = 25;
+  // KeyManagementType of type ECDH-ES + AES key wrap (256)
+  ECDH_ES_A256KW = 26;
+  // KeyManagementType of type AES-GCM key wrap (128)
+  A128GCMKW = 27;
+  // KeyManagementType of type AES-GCM key wrap (192)
+  A192GCMKW = 28;
+  // KeyManagementType of type AES-GCM key wrap (256)
+  A256GCMKW = 29;
+  // KeyManagementType of type PBES2 + HMAC-SHA256 + AES key wrap (128)
+  PBES2_HS256_A128KW = 30;
+  // KeyManagementType of type PBES2 + HMAC-SHA384 + AES key wrap (192)
+  PBES2_HS384_A192KW = 31;
+  // KeyManagementType of type PBES2 + HMAC-SHA512 + AES key wrap (256)
+  PBES2_HS512_A256KW = 32;
+}
+
+// Key represents a cryptographic key.
+message Key {
+  // Resource name of the Key.
+  // The format of the key resource name:
+  // `projects/*/keys/*`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"}
+  ];
+
+  // The aliases that the key can be referred to.
+  repeated string aliases = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "aliases"
+  ];
+
+  // The latest revision of the key.
+  KeyRevision latest_revision = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "latest_revision"
+  ];
+}
+
+// Is a representation of a single key revision
+message KeyRevision {
+  // Resource name of the KeyRevision.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/KeyRevision"}
+  ];
+
+  // The key content that has a similar format as a JWK.
+  CryptoKeyContent content = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "content"
+  ];
+}
+
+// Is the content of the crypto key.
+message CryptoKeyContent {
+  // KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
+  enum KeyUse {
+    // Unspecified key use.
+    KEY_USE_UNSPECIFIED = 0;
+
+    // KeyUse of type signature
+    SIGNATURE = 1;
+
+    // KeyUse of type encryption
+    ENCRYPTION = 2;
+  }
+
+  // It identifies the cryptographic algorithm family used with the key.
+  keys.type.KeyType key_type = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "kty"
+  ];
+
+  // Intended use of the key.
+  keys.type.KeyUse key_use = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "use"
+  ];
+
+  // The key can be used for the operations specified in this field.
+  repeated KeyOperations key_ops = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "key_ops"
+  ];
+
+  // The algorithm intended for use with the key.
+  KeyAlgorithm algorithm = 4 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "alg"
+  ];
+
+  // The identifier for the key.
+  string key_id = 5 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"},
+    json_name = "kid"
+  ];
+
+  // The "x5u" (X.509 URL) parameter is a URI [RFC3986] that refers to a
+  // resource for an X.509 public key certificate or certificate chain
+  // [RFC5280].  The identified resource MUST provide a representation of
+  // the certificate or certificate chain that conforms to RFC 5280
+  // [RFC5280] in PEM-encoded form, with each certificate delimited as
+  // specified in Section 6.1 of RFC 4945 [RFC4945].  The key in the first
+  // certificate MUST match the public key represented by other members of
+  // the JWK.  The protocol used to acquire the resource MUST provide
+  // integrity protection; an HTTP GET request to retrieve the certificate
+  // MUST use TLS [RFC2818] [RFC5246]; the identity of the server MUST be
+  // validated, as per Section 6 of RFC 6125 [RFC6125].  Use of this
+  // member is OPTIONAL.
+  //
+  // While there is no requirement that optional JWK members providing key
+  // usage, algorithm, or other information be present when the "x5u"
+  // member is used, doing so may improve interoperability for
+  // applications that do not handle PKIX certificates [RFC5280].  If
+  // other members are present, the contents of those members MUST be
+  // semantically consistent with the related fields in the first
+  // certificate.  For instance, if the "use" member is present, then it
+  // MUST correspond to the usage that is specified in the certificate,
+  // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.6
+  string x5u = 6 [
+    (google.api.field_behavior) = OPTIONAL,
+    json_name = "x5u"
+  ];
+
+  // The "x5c" (X.509 certificate chain) parameter contains a chain of one
+  // or more PKIX certificates [RFC5280].  The certificate chain is
+  // represented as a JSON array of certificate value strings.  Each
+  // string in the array is a base64-encoded (Section 4 of [RFC4648] --
+  // not base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.
+  // The PKIX certificate containing the key value MUST be the first
+  // certificate.  This MAY be followed by additional certificates, with
+  // each subsequent certificate being the one used to certify the
+  // previous one.  The key in the first certificate MUST match the public
+  // key represented by other members of the JWK.  Use of this member is
+  // OPTIONAL.
+  //
+  // As with the "x5u" member, optional JWK members providing key usage,
+  // algorithm, or other information MAY also be present when the "x5c"
+  // member is used.  If other members are present, the contents of those
+  // members MUST be semantically consistent with the related fields in
+  // the first certificate.  See the last paragraph of Section 4.6 for
+  // additional guidance on this.
+  string x5c = 7 [
+    (google.api.field_behavior) = OPTIONAL,
+    json_name = "x5c"
+  ];
+
+  // The "x5t" (X.509 certificate SHA-1 thumbprint) parameter is a
+  // base64url-encoded SHA-1 thumbprint (a.k.a. digest) of the DER
+
+  // encoding of an X.509 certificate [RFC5280].  Note that certificate
+  // thumbprints are also sometimes known as certificate fingerprints.
+  // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.8
+  string x5t = 8 [
+    (google.api.field_behavior) = OPTIONAL,
+    json_name = "x5t"
+  ];
+
+  // The "x5t#S256" (X.509 certificate SHA-256 thumbprint) parameter is a
+  // base64url-encoded SHA-256 thumbprint (a.k.a. digest) of the DER
+  // encoding of an X.509 certificate [RFC5280].  Note that certificate
+  // thumbprints are also sometimes known as certificate fingerprints.
+  // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.9
+  string x5t_s256 = 9 [
+    (google.api.field_behavior) = OPTIONAL,
+    json_name = "x5t#S256"
+  ];
+
+  // The "x5c#S256" (X.509 certificate SHA-256 certificate chain) parameter
+  // contains the SHA-256 thumbprint (a.k.a. digest) of the DER encoding of
+  // an X.509 certificate [RFC5280].  The certificate chain is represented
+  // as a JSON array of certificate value strings.  Each string in the
+  // array is a base64url-encoded DER [ITU.X690.1994] PKIX certificate
+  // value.  The PKIX certificate containing the key value MUST be the
+  // first certificate.  This MAY be followed by additional certificates,
+  // with each subsequent certificate being the one used to certify the
+  // previous one.  The key in the first certificate MUST match the public
+  // key represented by other members of the JWK.  Use of this member is
+  // OPTIONAL.
+  //
+  // As with the "x5u" member, optional JWK members providing key usage,
+  // algorithm, or other information MAY also be present when the "x5c#S256"
+  // member is used.  If other members are present, the contents of those
+  // members MUST be semantically consistent with the related fields in
+  // the first certificate.  See the last paragraph of Section 4.6 for
+  // additional guidance on this.
+  string x5c_s256 = 10 [
+    (google.api.field_behavior) = OPTIONAL,
+    json_name = "x5c#S256"
+  ];
+}

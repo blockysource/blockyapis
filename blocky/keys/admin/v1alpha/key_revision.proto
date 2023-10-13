@@ -1,0 +1,60 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.keys.admin.v1alpha;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/keys/admin/v1alpha;keysadminv1alpha";
+
+// KeyRevision is a representation of a cryptographic key revision.
+// It is derived from the key and is directly used for signing, verification and encryption.
+message KeyRevision {
+  option (google.api.resource) = {
+    type: "keys.blockyapis.com/KeyRevision"
+    pattern: "projects/{project}/keys/{key}/revisions/{revision}"
+  };
+
+  // The resource name of the key revision.
+  // Format: `projects/{project}/keys/{key}/revisions/{revision}`
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // Is a unique key revision identifier assigned by the server.
+  // I.e.: 'projects/{project}/keys/{key}/revisions/{revision}'
+  string revision_id = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The creation time of the key revision.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The key revision number for the parent.
+  // All the key revisions rotated from the same parent key have the same revision number.
+  int32 revision_number = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Revocation time of the key.
+  // If the key was revoked, it is no longer used for signing and verification.
+  // It is not included in the public JWK set.
+  // Once rotated, a new key is no longer marked as revoked.
+  // Remains null if the key was not revoked.
+  google.protobuf.Timestamp revoke_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Key from which the revision was derived.
+  string key = 6 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"}
+  ];
+}

@@ -1,0 +1,190 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.keys.type;
+
+option go_package = "github.com/blockysource/go-genproto/blocky/keys/type/keyspb;keyspb";
+
+// KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
+enum KeyUse {
+  // Unspecified key use.
+  KEY_USE_UNSPECIFIED = 0;
+
+  // KeyUse of type signature
+  SIGNATURE = 1;
+
+  // KeyUse of type encryption
+  ENCRYPTION = 2;
+}
+
+
+// KeyType is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
+enum KeyType {
+  // Unspecified key type.
+  KEY_TYPE_UNSPECIFIED = 0;
+
+  // KeyType of type Elliptic Curve (EC) key
+  EC = 1;
+
+  // KeyType of type RSA key
+  RSA = 2;
+
+  // KeyType of type Octet sequence (used to represent symmetric keys)
+  OCTET = 3;
+
+  // KeyType of type OKP key.
+  OKP = 4;
+}
+
+// EllipticCurve is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
+enum EllipticCurve {
+  // Unspecified elliptic curve.
+  ELLIPTIC_CURVE_UNSPECIFIED = 0;
+
+  // EllipticCurve of type P-256
+  EC_P256 = 1;
+
+  // EllipticCurve of type P-384
+  EC_P384 = 2;
+
+  // EllipticCurve of type P-521
+  EC_P521 = 3;
+}
+
+// OKPCurve is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
+enum OKPCurve {
+  // Unspecified OKP curve.
+  OKP_CURVE_UNSPECIFIED = 0;
+
+  // OKPCurve of type Ed25519
+  OKP_ED25519 = 1;
+
+  // OKPCurve of type X25519
+  OKP_X25519 = 2;
+}
+
+enum HashAlgorithm {
+  // Unspecified hash algorithm.
+  HASH_ALGORITHM_UNSPECIFIED = 0;
+
+  // HashAlgorithm of type SHA-256
+  SHA256 = 1;
+  // HashAlgorithm of type SHA-384
+  SHA384 = 2;
+  // HashAlgorithm of type SHA-512
+  SHA512 = 3;
+}
+
+// KeyManagementType is an algorithm used to encrypt and decrypt JSON Web Encryption (JWE) as defined in RFC 7518.
+enum KeyManagementAlgorithm {
+  // Unspecified key management type.
+  KEY_MANAGEMENT_ALGORITHM_UNSPECIFIED = 0;
+
+  // KeyManagementType of type Edwards-curve Digital Signature Algorithm (EdDSA)
+  ED25519 = 15;
+  // KeyManagementType of type RSA-PKCS1v1.5
+  RSA1_5 = 16;
+  // KeyManagementType of type RSA-OAEP-SHA1
+  RSA_OAEP = 17;
+  // KeyManagementType of type RSA-OAEP-SHA256
+  RSA_OAEP_256 = 18;
+  // KeyManagementType of type AES key wrap (128)
+  A128KW = 19;
+  // KeyManagementType of type AES key wrap (192)
+  A192KW = 20;
+  // KeyManagementType of type AES key wrap (256)
+  A256KW = 21;
+  // KeyManagementType of type Direct encryption
+  DIRECT = 22;
+  // KeyManagementType of type ECDH-ES
+  ECDH_ES = 23;
+  // KeyManagementType of type ECDH-ES + AES key wrap (128)
+  ECDH_ES_A128KW = 24;
+  // KeyManagementType of type ECDH-ES + AES key wrap (192)
+  ECDH_ES_A192KW = 25;
+  // KeyManagementType of type ECDH-ES + AES key wrap (256)
+  ECDH_ES_A256KW = 26;
+  // KeyManagementType of type AES-GCM key wrap (128)
+  A128GCMKW = 27;
+  // KeyManagementType of type AES-GCM key wrap (192)
+  A192GCMKW = 28;
+  // KeyManagementType of type AES-GCM key wrap (256)
+  A256GCMKW = 29;
+  // KeyManagementType of type PBES2 + HMAC-SHA256 + AES key wrap (128)
+  PBES2_HS256_A128KW = 30;
+  // KeyManagementType of type PBES2 + HMAC-SHA384 + AES key wrap (192)
+  PBES2_HS384_A192KW = 31;
+  // KeyManagementType of type PBES2 + HMAC-SHA512 + AES key wrap (256)
+  PBES2_HS512_A256KW = 32;
+}
+
+// SignatureAlgorithm is an algorithm used to sign and verify content.
+enum SignatureAlgorithm {
+  // Unspecified algorithm.
+  SIGNING_ALGORITHM_UNSPECIFIED = 0;
+
+  // Defines No digital signature
+  NONE = 1;
+  // Defines HMAC SHA-256 signing algorithm.
+  HS256 = 2;
+  // Defines HMAC SHA-384 signing algorithm.
+  HS384 = 3;
+  // Defines HMAC SHA-512 signing algorithm.
+  HS512 = 4;
+  // Defines RSA PKCS1 v1.5 signing algorithm.
+  RS256 = 5;
+  // Defines RSA PSS signing algorithm with SHA-384 hash.
+  RS384 = 6;
+  // Defines RSA PSS signing algorithm with SHA-512 hash.
+  RS512 = 7;
+  // Defines Elliptic Curve signing algorithm with P-256 curve SHA-256 hash.
+  ES256 = 8;
+  // Defines Elliptic Curve signing algorithm with P-384 curve SHA-384 hash.
+  ES384 = 9;
+  // Defines Elliptic Curve signing algorithm with P-521 curve SHA-512 hash.
+  ES512 = 10;
+  // Defines RSASSA-PSS signing algorithm with SHA-256 hash.
+  PS256 = 11;
+  // Defines RSASSA-PSS signing algorithm with SHA-384 hash.
+  PS384 = 12;
+  // Defines RSASSA-PSS signing algorithm with SHA-512 hash.
+  PS512 = 13;
+  // Defines EdDSA - Edwards-Curve Digital Signature Algorithm  (Ed25519) signing algorithm.
+  EdDSA = 14;
+}
+
+// EncryptionAlgorithm is an algorithm used to encrypt and decrypt JSON Web Encryption (JWE) as defined in RFC 7518.
+enum EncryptionAlgorithm {
+  ENCRYPTION_ALGORITHM_UNSPECIFIED = 0;
+
+  // Defines AES_128_CBC_HMAC_SHA_256 authenticated encryption algorithm.
+  A128CBC_HS256 = 1;
+
+  // Defines AES_192_CBC_HMAC_SHA_384 authenticated encryption algorithm.
+  A192CBC_HS384 = 2;
+
+  // Defines AES_256_CBC_HMAC_SHA_512 authenticated encryption algorithm.
+  A256CBC_HS512 = 3;
+
+  // Defines AES_128_GCM authenticated encryption algorithm.
+  A128GCM = 4;
+
+  // Defines AES_192_GCM authenticated encryption algorithm.
+  A192GCM = 5;
+
+  // Defines AES_256_GCM authenticated encryption algorithm.
+  A256GCM = 6;
+}
