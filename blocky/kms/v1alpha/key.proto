@@ -14,13 +14,15 @@
 
 syntax = "proto3";
 
-package blocky.keys.v1alpha;
+package blocky.kms.v1alpha;
 
-import "blocky/keys/type/keys.proto";
+import "blocky/kms/v1alpha/algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/keys/v1alpha;keysv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
 
 // The operations that the key can be used for.
 enum KeyOperations {
@@ -52,110 +54,74 @@ enum KeyOperations {
   DERIVE_BITS = 8;
 }
 
-// KeyAlgorithm represents the cryptographic algorithm family used with the key.
-enum KeyAlgorithm {
-  KEY_ALGORITHM_UNSPECIFIED = 0;
-
-  // Defines No digital signature
-  NONE = 1;
-  // Defines HMAC SHA-256 signing algorithm.
-  HS256 = 2;
-  // Defines HMAC SHA-384 signing algorithm.
-  HS384 = 3;
-  // Defines HMAC SHA-512 signing algorithm.
-  HS512 = 4;
-  // Defines RSA PKCS1 v1.5 signing algorithm.
-  RS256 = 5;
-  // Defines RSA PSS signing algorithm with SHA-384 hash.
-  RS384 = 6;
-  // Defines RSA PSS signing algorithm with SHA-512 hash.
-  RS512 = 7;
-  // Defines Elliptic Curve signing algorithm with P-256 curve SHA-256 hash.
-  ES256 = 8;
-  // Defines Elliptic Curve signing algorithm with P-384 curve SHA-384 hash.
-  ES384 = 9;
-  // Defines Elliptic Curve signing algorithm with P-521 curve SHA-512 hash.
-  ES512 = 10;
-  // Defines RSASSA-PSS signing algorithm with SHA-256 hash.
-  PS256 = 11;
-  // Defines RSASSA-PSS signing algorithm with SHA-384 hash.
-  PS384 = 12;
-  // Defines RSASSA-PSS signing algorithm with SHA-512 hash.
-  PS512 = 13;
-  // Defines EdDSA - Edwards-Curve Digital Signature Algorithm  (Ed25519) signing algorithm.
-  EdDSA = 14;
-
-  // KeyManagementType of type Edwards-curve Digital Signature Algorithm (EdDSA)
-  ED25519 = 15;
-  // KeyManagementType of type RSA-PKCS1v1.5
-  RSA1_5 = 16;
-  // KeyManagementType of type RSA-OAEP-SHA1
-  RSA_OAEP = 17;
-  // KeyManagementType of type RSA-OAEP-SHA256
-  RSA_OAEP_256 = 18;
-  // KeyManagementType of type AES key wrap (128)
-  A128KW = 19;
-  // KeyManagementType of type AES key wrap (192)
-  A192KW = 20;
-  // KeyManagementType of type AES key wrap (256)
-  A256KW = 21;
-  // KeyManagementType of type Direct encryption
-  DIRECT = 22;
-  // KeyManagementType of type ECDH-ES
-  ECDH_ES = 23;
-  // KeyManagementType of type ECDH-ES + AES key wrap (128)
-  ECDH_ES_A128KW = 24;
-  // KeyManagementType of type ECDH-ES + AES key wrap (192)
-  ECDH_ES_A192KW = 25;
-  // KeyManagementType of type ECDH-ES + AES key wrap (256)
-  ECDH_ES_A256KW = 26;
-  // KeyManagementType of type AES-GCM key wrap (128)
-  A128GCMKW = 27;
-  // KeyManagementType of type AES-GCM key wrap (192)
-  A192GCMKW = 28;
-  // KeyManagementType of type AES-GCM key wrap (256)
-  A256GCMKW = 29;
-  // KeyManagementType of type PBES2 + HMAC-SHA256 + AES key wrap (128)
-  PBES2_HS256_A128KW = 30;
-  // KeyManagementType of type PBES2 + HMAC-SHA384 + AES key wrap (192)
-  PBES2_HS384_A192KW = 31;
-  // KeyManagementType of type PBES2 + HMAC-SHA512 + AES key wrap (256)
-  PBES2_HS512_A256KW = 32;
-}
-
 // Key represents a cryptographic key.
 message Key {
   // Resource name of the Key.
   // The format of the key resource name:
   // `projects/*/keys/*`
   string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IDENTIFIER,
     (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"}
   ];
 
-  // The aliases that the key can be referred to.
-  repeated string aliases = 2 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "aliases"
+  // The unique server-generated UUID identifier for the key revision.
+  // It could be used as the key revision identifier in its resource name.
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = IMMUTABLE
   ];
 
-  // The latest revision of the key.
-  KeyRevision latest_revision = 3 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "latest_revision"
-  ];
+  // The aliases that can be used to refer to the key.
+  // The full path of the alias is:
+  // 'projects/{project}/keys/{key_alias}'
+  // Any modification of aliases needs to be done via the KeyAdminService API.
+  repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The parameters used to derive the key.
+  SigningKeyParameters signing_parameters = 4;
+  EncryptionKeyParameters encryption_parameters = 5;
+
+  // The display name of the key.
+  string display_name = 6 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Time when the key was updated.
+  google.protobuf.Timestamp update_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Time when the key was last rotated.
+  google.protobuf.Timestamp last_rotated_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Rotation interval of the revision derived from this key.
+  // If not provided, the key will not be rotated automatically.
+  google.protobuf.Duration rotation_interval = 10 [(google.api.field_behavior) = OPTIONAL];
+
+  // Is the number of keys derived from this core.
+  int32 revisions_number = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // Is a representation of a single key revision
 message KeyRevision {
   // Resource name of the KeyRevision.
   string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IDENTIFIER,
     (google.api.resource_reference) = {type: "keys.blockyapis.com/KeyRevision"}
   ];
 
+  // Is a unique key revision identifier assigned by the server.
+  // I.e.: 'projects/{project}/keys/{key}/revisions/{revision}'
+  string revision_id = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The creation time of the key revision.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The key revision number for the parent.
+  // All the key revisions rotated from the same parent key have the same revision number.
+  int32 revision_number = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
   // The key content that has a similar format as a JWK.
-  CryptoKeyContent content = 2 [
+  CryptoKeyContent content = 5 [
     (google.api.field_behavior) = REQUIRED,
     json_name = "content"
   ];
@@ -163,26 +129,14 @@ message KeyRevision {
 
 // Is the content of the crypto key.
 message CryptoKeyContent {
-  // KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
-  enum KeyUse {
-    // Unspecified key use.
-    KEY_USE_UNSPECIFIED = 0;
-
-    // KeyUse of type signature
-    SIGNATURE = 1;
-
-    // KeyUse of type encryption
-    ENCRYPTION = 2;
-  }
-
   // It identifies the cryptographic algorithm family used with the key.
-  keys.type.KeyType key_type = 1 [
+  KeyAlgorithmType key_algorithm_type = 1 [
     (google.api.field_behavior) = REQUIRED,
     json_name = "kty"
   ];
 
   // Intended use of the key.
-  keys.type.KeyUse key_use = 2 [
+  KeyUse key_use = 2 [
     (google.api.field_behavior) = REQUIRED,
     json_name = "use"
   ];
@@ -194,16 +148,23 @@ message CryptoKeyContent {
   ];
 
   // The algorithm intended for use with the key.
-  KeyAlgorithm algorithm = 4 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "alg"
-  ];
+  oneof algorithm {
+    SignatureAlgorithm signature_algorithm = 4 [(google.api.field_behavior) = REQUIRED];
+
+    KeyManagementAlgorithm key_management_algorithm = 5 [(google.api.field_behavior) = REQUIRED];
+  }
 
   // The identifier for the key.
-  string key_id = 5 [
+  string key_id = 6 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"},
     json_name = "kid"
+  ];
+
+  // The identifier of the key revision.
+  string key_revision_id = 7 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "vid"
   ];
 
   // The "x5u" (X.509 URL) parameter is a URI [RFC3986] that refers to a
@@ -228,7 +189,7 @@ message CryptoKeyContent {
   // certificate.  For instance, if the "use" member is present, then it
   // MUST correspond to the usage that is specified in the certificate,
   // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.6
-  string x5u = 6 [
+  string x5u = 8 [
     (google.api.field_behavior) = OPTIONAL,
     json_name = "x5u"
   ];
@@ -251,7 +212,7 @@ message CryptoKeyContent {
   // members MUST be semantically consistent with the related fields in
   // the first certificate.  See the last paragraph of Section 4.6 for
   // additional guidance on this.
-  string x5c = 7 [
+  string x5c = 9 [
     (google.api.field_behavior) = OPTIONAL,
     json_name = "x5c"
   ];
@@ -262,7 +223,7 @@ message CryptoKeyContent {
   // encoding of an X.509 certificate [RFC5280].  Note that certificate
   // thumbprints are also sometimes known as certificate fingerprints.
   // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.8
-  string x5t = 8 [
+  string x5t = 10 [
     (google.api.field_behavior) = OPTIONAL,
     json_name = "x5t"
   ];
@@ -272,7 +233,7 @@ message CryptoKeyContent {
   // encoding of an X.509 certificate [RFC5280].  Note that certificate
   // thumbprints are also sometimes known as certificate fingerprints.
   // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.9
-  string x5t_s256 = 9 [
+  string x5t_s256 = 11 [
     (google.api.field_behavior) = OPTIONAL,
     json_name = "x5t#S256"
   ];
@@ -295,8 +256,45 @@ message CryptoKeyContent {
   // members MUST be semantically consistent with the related fields in
   // the first certificate.  See the last paragraph of Section 4.6 for
   // additional guidance on this.
-  string x5c_s256 = 10 [
+  string x5c_s256 = 12 [
     (google.api.field_behavior) = OPTIONAL,
     json_name = "x5c#S256"
   ];
+}
+
+// RSA key parameters.
+message RSAKeyParameters {
+  // The size of the RSA key in bits.
+  // It must be a multiple of 8.
+  int32 key_size = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Elliptic curve based key parameters.
+message EllipticCurveKeyParameters {
+  // The curve used for the ECDSA key.
+  EllipticCurve curve = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Edwards curve based key parameters. (OKP)
+message OkpKeyParameters {
+  // The curve used for the OKP key.
+  OKPCurve curve = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// HMAC key parameters.
+message HmacKeyParameters {
+  // The hash algorithm used for HMAC.
+  HashAlgorithm hash_algorithm = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SigningKeyParameters contains information about the key used for signing.
+message SigningKeyParameters {
+  // Algorithm used for signing.
+  SignatureAlgorithm algorithm = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptionKeyParameters contains information about the key used for encryption.
+message EncryptionKeyParameters {
+  // Algorithm used for encryption.
+  KeyManagementAlgorithm algorithm = 1 [(google.api.field_behavior) = REQUIRED];
 }

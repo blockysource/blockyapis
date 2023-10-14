@@ -14,20 +14,34 @@
 
 syntax = "proto3";
 
-package blocky.keys.v1alpha;
+package blocky.kms.v1alpha;
 
-import "blocky/keys/type/keys.proto";
-import "blocky/keys/v1alpha/encrypted_content.proto";
-import "blocky/keys/v1alpha/key.proto";
-import "blocky/keys/v1alpha/signature.proto";
+import "blocky/api/annotations.proto";
+import "blocky/kms/v1alpha/algorithm.proto";
+import "blocky/kms/v1alpha/encrypted_content.proto";
+import "blocky/kms/v1alpha/key.proto";
+import "blocky/kms/v1alpha/key_ring.proto";
+import "blocky/kms/v1alpha/signature.proto";
 import "google/api/annotations.proto";
+import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/keys/v1alpha;keysv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
 
 // A service that handles cryptographic keys.
 service KeysService {
+  // CreateKey creates a new authorization key.
+  // New key is neither active nor used in a set.
+  rpc CreateKey(CreateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*}/keys",
+      body: "key"
+    };
+    option (google.api.method_signature) = "parent,key";
+  }
+
   // Lists the keys for a given project.
   rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
     option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/keys"};
@@ -36,6 +50,86 @@ service KeysService {
   // Get a key by its resource name.
   rpc GetKey(GetKeyRequest) returns (Key) {
     option (google.api.http) = {get: "/v1alpha/{name=projects/*/keys/*}"};
+  }
+
+  // UpdateKey updates the specified authorization key.
+  rpc UpdateKey(UpdateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{key.name=projects/*/keys/*}",
+      body: "key"
+    };
+    option (google.api.method_signature) = "key,update_mask";
+  }
+
+  // Creates a new key revision and rotates the key.
+  rpc RotateKey(RotateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*/keys/*}/keys:rotate",
+      body: "*"
+    };
+    option (google.api.method_signature) = "parent";
+  }
+
+  // GetKeyRevision returns the specified key revision.
+  rpc GetKeyRevision(GetKeyRevisionRequest) returns (KeyRevision) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/keys/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // ListKeyRevisions lists authorization keys that matches given request.
+  rpc ListKeyRevisions(ListKeyRevisionsRequest) returns (ListKeyRevisionsResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/keys/*}/revisions"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 20,
+      }
+      order_by: "create_time desc"
+    };
+  }
+
+  // Create a new key ring.
+  rpc CreateKeyRing(CreateKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*}/key_rings",
+      body: "key_ring"
+    };
+    option (google.api.method_signature) = "parent,key_ring";
+  }
+
+  // List key rings.
+  rpc ListKeyRings(ListKeyRingsRequest) returns (ListKeyRingsResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/key_rings"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 50
+      },
+      order_by: "create_time desc"
+    };
+  }
+
+  // Get key ring.
+  rpc GetKeyRing(GetKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/key_rings/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Update key ring.
+  rpc UpdateKeyRing(UpdateKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{key_ring.name=projects/*/key_rings/*}",
+      body: "key_ring"
+    };
+    option (google.api.method_signature) = "key_ring,update_mask";
+  }
+
+  // Delete key ring.
+  rpc DeleteKeyRing(DeleteKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/key_rings/*}"};
+    option (google.api.method_signature) = "name";
   }
 
   // SignContent signs the given data with the given key.
@@ -71,10 +165,24 @@ service KeysService {
   rpc DecryptBlob(DecryptBlobRequest) returns (DecryptBlobResponse);
 }
 
+// The request message for
+// [AuthzAdminService.CreateKey][blocky.kms.admin.v1alpha.AuthzAdminService.CreateKey].
+message CreateKeyRequest {
+  // Required. The resource name of the project in which to create the key.
+  // Format: 'projects/{project}'.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Required, resource to create.
+  Key key = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
 // Request message for KeysService.ListKeys.
 message ListKeysRequest {
   // Required. The resource name of the project to list keys for.
-  // Format: `projects/{project_id}`
+  // Format: `projects/{project}}`
   string parent = 1 [(google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}];
 
   // The maximum number of keys to return. The service may return fewer than
@@ -105,6 +213,160 @@ message GetKeyRequest {
   string name = 1 [(google.api.resource_reference) = {type: "keys.blockyapis.com/Key"}];
 }
 
+// The request message for
+// [KeyAdminService.UpdateKey][blocky.kms.admin.v1alpha.KeyAdminService.UpdateKey].
+message UpdateKeyRequest {
+  // Required identifier of the key to update.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"}
+  ];
+
+  // Required, resource to update.
+  Key key = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The list of fields to update.
+  // If empty, all modifiable fields will be updated.
+  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+// [KeyAdminService.RotateKey][blocky.kms.admin.v1alpha.KeyAdminService.RotateKey].
+message RotateKeyRequest {
+  // Required identifier of the key to create a revision for.
+  // Format: 'projects/{project}/keys/{key}'.
+  string parent = 1 [
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+}
+
+// The request message for
+// [KeyAdminService.GetKey][blocky.kms.admin.v1alpha.KeyAdminService.GetKey].
+message GetKeyRevisionRequest {
+  // Required identifier of the key revision to get.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"}
+  ];
+}
+
+// The request message for
+// [KeyAdminService.ListKeys][blocky.kms.admin.v1alpha.KeyAdminService.ListKeys].
+message ListKeyRevisionsRequest {
+  // Required identifier of the key to list revisions for.
+  // This might be either a project, or a key core.
+  // Format:
+  // - 'projects/{project}/keys/{key}'
+  string parent = 1 [
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Optional page_size on the number of key revisions to include in the response.
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional page token to continue listing key revisions from.
+  // If not provided, the service will start listing from the beginning.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response message for
+// [KeyAdminService.ListKeys][blocky.kms.admin.v1alpha.KeyAdminService.ListKeys].
+message ListKeyRevisionsResponse {
+  // List of key revisions for the requested key.
+  repeated KeyRevision key_revisions = 1;
+
+  // Token to continue listing key revisions from.
+  // If there are no more key revisions to list, the token is not included.
+  string next_page_token = 2;
+}
+
+// The request message for
+// [KeyAdminService.CreateKeyRing][blocky.kms.admin.v1alpha.KeyAdminService.CreateKeyRing].
+message CreateKeyRingRequest {
+  // Required. The resource name of the project in which to create the key ring.
+  // Format: 'projects/{project}'.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Required, resource to create.
+  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+// [KeyAdminService.ListKeyRings][blocky.kms.admin.v1alpha.KeyAdminService.ListKeyRings].
+message ListKeyRingsRequest {
+  // Required. The resource name of the project whose key rings are to be listed.
+  // Format: 'projects/{project}'.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Optional. The maximum number of KeyRings to return in the response. The
+  // server allows a maximum of 300 KeyRings to return. If unspecified, the
+  // server will use 50 as the default, unless its configuration specifies
+  // a smaller default.
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. A pagination token returned from a previous call to
+  // ListKeyRingsRequest that indicates where this listing should continue from.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response message for
+// [KeyAdminService.ListKeyRings][blocky.kms.admin.v1alpha.KeyAdminService.ListKeyRings].
+message ListKeyRingsResponse {
+  // List of key rings matching the request.
+  repeated KeyRing key_rings = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no
+  // more results in the list.
+  string next_page_token = 2;
+}
+
+// The request message for
+// [KeyAdminService.GetKeyRing][blocky.kms.admin.v1alpha.KeyAdminService.GetKeyRing].
+message GetKeyRingRequest {
+  // Required. The resource name of the key ring to retrieve.
+  // Format: 'projects/{project}/key_rings/{key_ring}'.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/KeyRing"}
+  ];
+}
+
+// The request message for
+// [KeyAdminService.UpdateKeyRing][blocky.kms.admin.v1alpha.KeyAdminService.UpdateKeyRing].
+message UpdateKeyRingRequest {
+  // Required identifier of the key ring to update.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/KeyRing"}
+  ];
+
+  // Required, resource to update.
+  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The list of fields to update.
+  // If empty, all modifiable fields will be updated.
+  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+// [KeyAdminService.DeleteKeyRing][blocky.kms.admin.v1alpha.KeyAdminService.DeleteKeyRing].
+message DeleteKeyRingRequest {
+  // Required. The resource name of the key ring to delete.
+  // Format: 'projects/{project}/key_rings/{key_ring}'.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "keys.blockyapis.com/KeyRing"}
+  ];
+}
+
 // SignContentRequest is the request for the Sign method.
 message SignContentRequest {
   // Required. The resource name that should be used to sign the content.
@@ -129,15 +391,10 @@ message SignContentResponse {
   ];
 
   // The algorithm that was used to sign the content.
-  keys.type.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
-  oneof signed_content {
-    // Protobuf web signature
-    SignedContent pws = 3;
-
-    // JSON web signature
-    string jws = 4;
-  }
+  // Protobuf web signature
+  SignedContent pws = 3;
 }
 
 // VerifySignatureRequest is the request for the Verify method.
@@ -148,17 +405,8 @@ message VerifySignedContentRequest {
     (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
   ];
 
-  // The format of the signature.
-  SignatureFormat format = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // The signed content to verify.
-  oneof signed_content {
-    // Protobuf web signature
-    SignedContent pws = 3;
-
-    // JSON web signature
-    string jws = 4;
-  }
+  // Protobuf web signature
+  SignedContent pws = 2;
 }
 
 // VerifySignatureResponse is the response for the Verify method.
@@ -177,7 +425,7 @@ message VerifySignedContentResponse {
   bool valid = 3 [(google.api.field_behavior) = REQUIRED];
 
   // The signing algorithm that was used to sign the content.
-  keys.type.SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
+  SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 // SignBlobRequest is the request for the SignBlob method..
@@ -192,7 +440,8 @@ message SignBlobRequest {
   ];
 
   // The blob to sign.
-  bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
+  bytes blob = 2
+[(google.api.field_behavior) = REQUIRED];
 }
 
 // SignBlobResponse is the response for the Sign method.
@@ -204,7 +453,7 @@ message SignBlobResponse {
   ];
 
   // The algorithm that was used to sign the content.
-  keys.type.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The signature of the blob.
   bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
@@ -241,7 +490,7 @@ message VerifyBlobResponse {
   bool valid = 3 [(google.api.field_behavior) = REQUIRED];
 
   // The signing algorithm that was used to sign the content.
-  keys.type.SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
+  SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 // EncryptContentRequest is the request for the EncryptContent method.
@@ -268,7 +517,7 @@ message EncryptContentResponse {
   ];
 
   // The algorithm that was used to encrypt the content.
-  keys.type.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The encrypted content.
   EncryptedContent encrypted_content = 3 [(google.api.field_behavior) = REQUIRED];
@@ -298,7 +547,7 @@ message DecryptContentResponse {
   ];
 
   // The algorithm that was used to decrypt the content.
-  keys.type.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The decrypted content.
   bytes content = 3 [(google.api.field_behavior) = REQUIRED];
@@ -328,7 +577,7 @@ message EncryptBlobResponse {
   ];
 
   // The algorithm that was used to encrypt the blob.
-  keys.type.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The cipher text of the encrypted blob.
   bytes cipher_text = 3 [(google.api.field_behavior) = REQUIRED];
@@ -358,7 +607,7 @@ message DecryptBlobResponse {
   ];
 
   // The algorithm that was used to decrypt the blob.
-  keys.type.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The decrypted blob.
   bytes blob = 3 [(google.api.field_behavior) = REQUIRED];

@@ -14,13 +14,13 @@
 
 syntax = "proto3";
 
-package blocky.keys.v1alpha;
+package blocky.kms.v1alpha;
 
-import "blocky/keys/type/keys.proto";
+import "blocky/kms/v1alpha/algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/keys/v1alpha;keysv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
 
 // EncryptedContent is the content securely encrypted using encryption algorithms.
 message EncryptedContent {
@@ -38,10 +38,10 @@ message EncryptedContent {
     }
 
     // Algorithm is the algorithm used to as the key management algorithm.
-    keys.type.KeyManagementAlgorithm algorithm = 1 [(google.api.field_behavior) = REQUIRED];
+    KeyManagementAlgorithm algorithm = 1 [(google.api.field_behavior) = REQUIRED];
 
     // Encryption algorithm is the algorithm used to encrypt the content.
-    keys.type.EncryptionAlgorithm encryption_algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+    EncryptionAlgorithm encryption_algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
     // Key identifier is the identifier of the key used to sign the content.
     // This is not a full resource name, but just a key identifier.

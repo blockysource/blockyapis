@@ -14,26 +14,14 @@
 
 syntax = "proto3";
 
-package blocky.keys.v1alpha;
+package blocky.kms.v1alpha;
 
-import "blocky/keys/type/keys.proto";
+import "blocky/kms/v1alpha/algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/keys/v1alpha;keysv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
 
-// SignatureFormat defines the format of a signature.
-enum SignatureFormat {
-  // SIGNATURE_TYPE_UNSPECIFIED is an unspecified signature type.
-  SIGNATURE_TYPE_UNSPECIFIED = 0;
-
-  // JWS is a JSON Web Signature.
-  JWS = 1;
-
-  // PWS is a Protobuf Web Signature.
-  // A protobuf
-  PWS = 2;
-}
 
 // SignedContent is a message that represents a Protobuf Web Signature.
 // The resultant signature is in two steps:
@@ -42,7 +30,7 @@ enum SignatureFormat {
 message SignedContent {
   message Header {
     // Algorithm is the algorithm used to sign the content.
-    keys.type.SignatureAlgorithm algorithm = 1 [
+    SignatureAlgorithm algorithm = 1 [
       (google.api.field_behavior) = REQUIRED,
       json_name = "alg"
     ];
