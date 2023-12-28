@@ -40,8 +40,8 @@ message KeyMaterialCreated {
   // The resource name of the organization that owns the key.
   string organization = 1;
 
-  // The resource name of the parent to which the key material belongs.
-  string parent = 2;
+  // The resource name of key material.
+  string name = 2;
 
   // The algorithm type of the key.
   crypto.KeyAlgorithmType algorithm_type = 5;
