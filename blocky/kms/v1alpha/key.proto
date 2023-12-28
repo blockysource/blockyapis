@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-package blocky.kms.admin.v1alpha;
+package blocky.kms.v1alpha;
 
 import "blocky/kms/crypto/algorithm.proto";
 import "blocky/kms/crypto/key_material.proto";
@@ -23,7 +23,7 @@ import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/admin/v1alpha;adminpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
 
 // KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
 enum KeyUse {
