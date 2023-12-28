@@ -16,7 +16,9 @@ syntax = "proto3";
 
 package blocky.kms.events;
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/events;kmsevents";
+import "blocky/kms/crypto/key_material.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/events;kmseventspb";
 
 // KeyCreated is published when a key is created.
 message KeyCreated {
@@ -28,4 +30,19 @@ message KeyCreated {
 
   // The resource name of the key.
   string key = 3;
+
+  // The algorithm type of the key.
+  crypto.KeyAlgorithmType algorithm_type = 4;
+}
+
+// KeyMaterialCreated is a message of an event when a key material is created.
+message KeyMaterialCreated {
+  // The resource name of the organization that owns the key.
+  string organization = 1;
+
+  // The resource name of the parent to which the key material belongs.
+  string parent = 2;
+
+  // The algorithm type of the key.
+  crypto.KeyAlgorithmType algorithm_type = 5;
 }
