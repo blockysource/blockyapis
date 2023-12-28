@@ -4,7 +4,7 @@ package blocky.api;
 
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/api/annotations;blockyannnotations";
+option go_package = "github.com/blockysource/go-genproto/blocky/api/annotationspb;annotationspb";
 
 // MessageProperties is used to annotate messages with additional information.
 // This information can be used by generators to generate code that is more

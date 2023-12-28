@@ -20,7 +20,7 @@ import "blocky/api/message_properties.proto";
 import "blocky/api/query_parameters.proto";
 import "google/protobuf/descriptor.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/api/annotations;blockyannnotations";
+option go_package = "github.com/blockysource/go-genproto/blocky/api/annotationspb;annotationspb";
 
 // Extends message options to define query parameters.
 extend google.protobuf.MethodOptions {

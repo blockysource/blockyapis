@@ -14,27 +14,11 @@
 
 syntax = "proto3";
 
-package blocky.kms.v1alpha;
+package blocky.kms.crypto;
 
 import "google/api/field_behavior.proto";
-import "google/api/resource.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
-
-// KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
-enum KeyUse {
-  // Unspecified key use.
-  KEY_USE_UNSPECIFIED = 0;
-
-  // Indicates that the key is used for signing.
-  SIGN_VERIFY = 1;
-
-  // Indicates that the key is used for encryption.
-  ENCRYPT_DECRYPT = 2;
-
-  // Indicates that the key is used for both signing and encryption.
-  SIGN_ENCRYPT_DECRYPT = 3;
-}
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/cryptopb;cryptopb";
 
 // Is the specified RSA key size supported.
 enum RSAKeySize {
@@ -74,6 +58,7 @@ enum OKPCurve {
   OKP_ED25519 = 1;
 }
 
+// HashAlgorithm is an algorithm used to hash content.
 enum HashAlgorithm {
   // Unspecified hash algorithm.
   HASH_ALGORITHM_UNSPECIFIED = 0;
@@ -92,7 +77,7 @@ enum KeyManagementAlgorithm {
   KEY_MANAGEMENT_ALGORITHM_UNSPECIFIED = 0;
 
   // KeyManagementType of type Edwards-curve Digital Signature Algorithm (EdDSA)
-  ED25519 = 1;
+  KEY_MANAGEMENT_ED25519 = 1;
   // KeyManagementType of type RSA-PKCS1v1.5
   RSA1_5 = 2;
   // KeyManagementType of type RSA-OAEP-SHA1
@@ -168,7 +153,7 @@ enum SignatureAlgorithm {
 enum EncryptionAlgorithm {
   ENCRYPTION_ALGORITHM_UNSPECIFIED = 0;
 
-  // Defines AES_128_CBC_HMAC_SHA_256 authenticated encryptiosn algorithm.
+  // Defines AES_128_CBC_HMAC_SHA_256 authenticated encryption algorithm.
   A128CBC_HS256 = 1;
 
   // Defines AES_192_CBC_HMAC_SHA_384 authenticated encryption algorithm.

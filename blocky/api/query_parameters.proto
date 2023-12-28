@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package blocky.api;
 
-option go_package = "github.com/blockysource/go-genproto/blocky/api/annotations;blockyannnotations";
+option go_package = "github.com/blockysource/go-genproto/blocky/api/annotationspb;annotationspb";
 
 // QueryParameters defines the query parameters for a message.
 message QueryParameters {

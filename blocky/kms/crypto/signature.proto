@@ -14,13 +14,13 @@
 
 syntax = "proto3";
 
-package blocky.kms.v1alpha;
+package blocky.kms.crypto;
 
-import "blocky/kms/v1alpha/algorithm.proto";
+import "blocky/kms/crypto/algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/cryptopb;cryptopb";
 
 
 // SignedContent is a message that represents a Protobuf Web Signature.
@@ -43,12 +43,12 @@ message SignedContent {
       json_name = "kid"
     ];
 
-    // Key revision is the revision of the key used to sign the content.
+    // Key material id is the material of the key used to sign the content.
     // This is not a full resource name, but just a key identifier.
-    string key_revision_id = 3 [
-      (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRevision"},
+    string material_id = 3 [
+      (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"},
       (google.api.field_behavior) = REQUIRED,
-      json_name = "rid"
+      json_name = "mid"
     ];
 
     // Metadata is the metadata of the signature.

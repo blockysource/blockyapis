@@ -16,13 +16,29 @@ syntax = "proto3";
 
 package blocky.kms.v1alpha;
 
-import "blocky/kms/v1alpha/algorithm.proto";
+import "blocky/kms/crypto/algorithm.proto";
+import "blocky/kms/crypto/key_material.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
+
+// KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
+enum KeyUse {
+  // Unspecified key use.
+  KEY_USE_UNSPECIFIED = 0;
+
+  // Indicates that the key is used for signing.
+  SIGN_VERIFY = 1;
+
+  // Indicates that the key is used for encryption.
+  ENCRYPT_DECRYPT = 2;
+
+  // Indicates that the key is used for both signing and encryption.
+  SIGN_ENCRYPT_DECRYPT = 3;
+}
 
 // The operations that the key can be used for.
 enum KeyOperations {
@@ -61,11 +77,11 @@ message Key {
   // `projects/*/keys/*`
   string name = 1 [
     (google.api.field_behavior) = IDENTIFIER,
-    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"}
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
   ];
 
-  // The unique server-generated UUID identifier for the key revision.
-  // It could be used as the key revision identifier in its resource name.
+  // The unique server-generated UUID identifier for the key.
+  // It could be used as the key identifier in its resource name.
   string uid = 2 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (google.api.field_behavior) = IMMUTABLE
@@ -77,224 +93,167 @@ message Key {
   // Any modification of aliases needs to be done via the KeyAdminService API.
   repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The parameters used to derive the key.
-  SigningKeyParameters signing_parameters = 4;
-  EncryptionKeyParameters encryption_parameters = 5;
-
-  // The display name of the key.
-  string display_name = 6 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
-
-  // Time when the key was created.
-  google.protobuf.Timestamp create_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // Time when the key was updated.
-  google.protobuf.Timestamp update_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // Time when the key was last rotated.
-  google.protobuf.Timestamp last_rotated_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // Rotation interval of the revision derived from this key.
-  // If not provided, the key will not be rotated automatically.
-  google.protobuf.Duration rotation_interval = 10 [(google.api.field_behavior) = OPTIONAL];
-
-  // Is the number of keys derived from this core.
-  int32 revisions_number = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
-}
-
-// Is a representation of a single key revision
-message KeyRevision {
-  // Resource name of the KeyRevision.
-  string name = 1 [
-    (google.api.field_behavior) = IDENTIFIER,
-    (google.api.resource_reference) = {type: "keys.blockyapis.com/KeyRevision"}
-  ];
-
-  // Is a unique key revision identifier assigned by the server.
-  // I.e.: 'projects/{project}/keys/{key}/revisions/{revision}'
-  string revision_id = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The creation time of the key revision.
-  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The key revision number for the parent.
-  // All the key revisions rotated from the same parent key have the same revision number.
-  int32 revision_number = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The key content that has a similar format as a JWK.
-  CryptoKeyContent content = 5 [
+  // The key algorithm type
+  crypto.KeyAlgorithmType algorithm_type = 4 [
     (google.api.field_behavior) = REQUIRED,
-    json_name = "content"
-  ];
-}
-
-// Is the content of the crypto key.
-message CryptoKeyContent {
-  // It identifies the cryptographic algorithm family used with the key.
-  KeyAlgorithmType key_algorithm_type = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "kty"
+    (google.api.field_behavior) = IMMUTABLE
   ];
 
-  // Intended use of the key.
-  KeyUse key_use = 2 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "use"
-  ];
-
-  // The key can be used for the operations specified in this field.
-  repeated KeyOperations key_ops = 3 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "key_ops"
-  ];
-
-  // The algorithm intended for use with the key.
-  oneof algorithm {
-    SignatureAlgorithm signature_algorithm = 4 [(google.api.field_behavior) = REQUIRED];
-
-    KeyManagementAlgorithm key_management_algorithm = 5 [(google.api.field_behavior) = REQUIRED];
+  // The parameters used to generate the key material.
+  oneof algorithm_parameters {
+    // The parameters used to generate the key material.
+    RSAKeyParameters rsa_key_parameters = 5;
+    EllipticCurveKeyParameters elliptic_curve_key_parameters = 6;
+    OkpKeyParameters okp_key_parameters = 7;
+    OctetKeyParameters octet_key_parameters = 8;
   }
 
-  // The identifier for the key.
-  string key_id = 6 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "keys.blockyapis.com/Key"},
-    json_name = "kid"
+  // Supported signing algorithms of the key.
+  repeated crypto.SignatureAlgorithm signing_algorithms = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Supported encryption algorithms of the key.
+  repeated crypto.EncryptionAlgorithm encryption_algorithms = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the key.
+  string display_name = 11 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Time when the key was updated.
+  google.protobuf.Timestamp update_time = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Time when the key was last rotated.
+  google.protobuf.Timestamp last_rotated_time = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Rotation interval of the material derived from this key.
+  // If not provided, the key will not be rotated automatically.
+  google.protobuf.Duration rotation_interval = 15 [(google.api.field_behavior) = OPTIONAL];
+
+  // Determines if a key is protected against accidental deletion.
+  // If not provided, the key will not be protected.
+  bool destroy_protection = 16 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Is a cryptographic key material directly used for the cryptographic operations.
+// The parameters of the material are derived from the key.
+message KeyMaterial {
+  // The resource name of the key material.
+  // The format of the key material resource name:
+  // `projects/*/keys/*/materials/*`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
   ];
 
-  // The identifier of the key revision.
-  string key_revision_id = 7 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "vid"
-  ];
+  // Is a unique key material identifier assigned by the server.
+  // I.e.: 'projects/{project}/keys/{key}/materials/{material}'
+  string material_id = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The "x5u" (X.509 URL) parameter is a URI [RFC3986] that refers to a
-  // resource for an X.509 public key certificate or certificate chain
-  // [RFC5280].  The identified resource MUST provide a representation of
-  // the certificate or certificate chain that conforms to RFC 5280
-  // [RFC5280] in PEM-encoded form, with each certificate delimited as
-  // specified in Section 6.1 of RFC 4945 [RFC4945].  The key in the first
-  // certificate MUST match the public key represented by other members of
-  // the JWK.  The protocol used to acquire the resource MUST provide
-  // integrity protection; an HTTP GET request to retrieve the certificate
-  // MUST use TLS [RFC2818] [RFC5246]; the identity of the server MUST be
-  // validated, as per Section 6 of RFC 6125 [RFC6125].  Use of this
-  // member is OPTIONAL.
-  //
-  // While there is no requirement that optional JWK members providing key
-  // usage, algorithm, or other information be present when the "x5u"
-  // member is used, doing so may improve interoperability for
-  // applications that do not handle PKIX certificates [RFC5280].  If
-  // other members are present, the contents of those members MUST be
-  // semantically consistent with the related fields in the first
-  // certificate.  For instance, if the "use" member is present, then it
-  // MUST correspond to the usage that is specified in the certificate,
-  // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.6
-  string x5u = 8 [
+  // The creation time of the key material.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Related key resource name.
+  // I.e.: 'projects/{project}/keys/{key}'
+  string key = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The resource name of the predecessor key material.
+  // This is set only if the key material was rotated.
+  string predecessor = 5 [
     (google.api.field_behavior) = OPTIONAL,
-    json_name = "x5u"
-  ];
-
-  // The "x5c" (X.509 certificate chain) parameter contains a chain of one
-  // or more PKIX certificates [RFC5280].  The certificate chain is
-  // represented as a JSON array of certificate value strings.  Each
-  // string in the array is a base64-encoded (Section 4 of [RFC4648] --
-  // not base64url-encoded) DER [ITU.X690.1994] PKIX certificate value.
-  // The PKIX certificate containing the key value MUST be the first
-  // certificate.  This MAY be followed by additional certificates, with
-  // each subsequent certificate being the one used to certify the
-  // previous one.  The key in the first certificate MUST match the public
-  // key represented by other members of the JWK.  Use of this member is
-  // OPTIONAL.
-  //
-  // As with the "x5u" member, optional JWK members providing key usage,
-  // algorithm, or other information MAY also be present when the "x5c"
-  // member is used.  If other members are present, the contents of those
-  // members MUST be semantically consistent with the related fields in
-  // the first certificate.  See the last paragraph of Section 4.6 for
-  // additional guidance on this.
-  string x5c = 9 [
-    (google.api.field_behavior) = OPTIONAL,
-    json_name = "x5c"
-  ];
-
-  // The "x5t" (X.509 certificate SHA-1 thumbprint) parameter is a
-  // base64url-encoded SHA-1 thumbprint (a.k.a. digest) of the DER
-
-  // encoding of an X.509 certificate [RFC5280].  Note that certificate
-  // thumbprints are also sometimes known as certificate fingerprints.
-  // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.8
-  string x5t = 10 [
-    (google.api.field_behavior) = OPTIONAL,
-    json_name = "x5t"
-  ];
-
-  // The "x5t#S256" (X.509 certificate SHA-256 thumbprint) parameter is a
-  // base64url-encoded SHA-256 thumbprint (a.k.a. digest) of the DER
-  // encoding of an X.509 certificate [RFC5280].  Note that certificate
-  // thumbprints are also sometimes known as certificate fingerprints.
-  // See more at: https://www.rfc-editor.org/rfc/rfc7517#section-4.9
-  string x5t_s256 = 11 [
-    (google.api.field_behavior) = OPTIONAL,
-    json_name = "x5t#S256"
-  ];
-
-  // The "x5c#S256" (X.509 certificate SHA-256 certificate chain) parameter
-  // contains the SHA-256 thumbprint (a.k.a. digest) of the DER encoding of
-  // an X.509 certificate [RFC5280].  The certificate chain is represented
-  // as a JSON array of certificate value strings.  Each string in the
-  // array is a base64url-encoded DER [ITU.X690.1994] PKIX certificate
-  // value.  The PKIX certificate containing the key value MUST be the
-  // first certificate.  This MAY be followed by additional certificates,
-  // with each subsequent certificate being the one used to certify the
-  // previous one.  The key in the first certificate MUST match the public
-  // key represented by other members of the JWK.  Use of this member is
-  // OPTIONAL.
-  //
-  // As with the "x5u" member, optional JWK members providing key usage,
-  // algorithm, or other information MAY also be present when the "x5c#S256"
-  // member is used.  If other members are present, the contents of those
-  // members MUST be semantically consistent with the related fields in
-  // the first certificate.  See the last paragraph of Section 4.6 for
-  // additional guidance on this.
-  string x5c_s256 = 12 [
-    (google.api.field_behavior) = OPTIONAL,
-    json_name = "x5c#S256"
+    (google.api.field_behavior) = OUTPUT_ONLY
   ];
 }
 
 // RSA key parameters.
 message RSAKeyParameters {
   // The size of the RSA key in bits.
-  // It must be a multiple of 8.
-  int32 key_size = 1 [(google.api.field_behavior) = REQUIRED];
+  // If not provided by default the key size will be 2048 bits.
+  crypto.RSAKeySize key_size = 1 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Elliptic curve based key parameters.
 message EllipticCurveKeyParameters {
   // The curve used for the ECDSA key.
-  EllipticCurve curve = 1 [(google.api.field_behavior) = REQUIRED];
+  // If not provided by default the curve will be P256.
+  crypto.EllipticCurve curve = 1 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // Edwards curve based key parameters. (OKP)
 message OkpKeyParameters {
   // The curve used for the OKP key.
-  OKPCurve curve = 1 [(google.api.field_behavior) = REQUIRED];
+  // If not provided by default the curve will be ED25519.
+  crypto.OKPCurve curve = 1 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // HMAC key parameters.
-message HmacKeyParameters {
-  // The hash algorithm used for HMAC.
-  HashAlgorithm hash_algorithm = 1 [(google.api.field_behavior) = REQUIRED];
+message OctetKeyParameters {
+  // The size of the HMAC key in bits.
+  // The key size must be at least as long as the hash output length.
+  // I.e.: for SHA256 the key size must be at least 256 bits (32 bytes).
+  // If not provided the key size will be equal to the hash output length.
+  // The maximum key size is 1024 bits (128 bytes).
+  // If the key is not multiple of 8 bits, it will be padded with zeros to the
+  // nearest multiple of 8 bits.
+  // I.e. if the key size is 17 bytes, it will be padded to 24 bytes.
+  // If the key size is not provided, the default (256 bits) will be used.
+  int32 key_size = 1 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// SigningKeyParameters contains information about the key used for signing.
-message SigningKeyParameters {
-  // Algorithm used for signing.
-  SignatureAlgorithm algorithm = 1 [(google.api.field_behavior) = REQUIRED];
-}
+// Describes the content of a key with details, that allows to use it for cryptographic operations.
+// It contains not only cryptographic key metadata, but also the identifiers of the key and its material,
+// which allows to match the content with the key and its material resource.
+message KeyMaterialContent {
+  // A header of the cryptography key. It contains necessary information to identify the key.
+  message Header {
+    // It identifies the cryptographic algorithm family used with the key.
+    crypto.KeyAlgorithmType key_algorithm_type = 1 [
+      (google.api.field_behavior) = REQUIRED,
+      json_name = "kty"
+    ];
 
-// EncryptionKeyParameters contains information about the key used for encryption.
-message EncryptionKeyParameters {
-  // Algorithm used for encryption.
-  KeyManagementAlgorithm algorithm = 1 [(google.api.field_behavior) = REQUIRED];
+    // Intended use of the key.
+    KeyUse key_use = 2 [
+      (google.api.field_behavior) = REQUIRED,
+      json_name = "use"
+    ];
+
+    // The key can be used for the operations specified in this field.
+    repeated KeyOperations key_ops = 3 [
+      (google.api.field_behavior) = REQUIRED,
+      json_name = "key_ops"
+    ];
+
+    // The algorithm intended for use with the key.
+    repeated crypto.SignatureAlgorithm signature_algorithms = 4 [(google.api.field_behavior) = REQUIRED];
+
+    // The encryption key management algorithms intended for use with the key.
+    repeated crypto.KeyManagementAlgorithm key_management_algorithms = 5 [(google.api.field_behavior) = REQUIRED];
+
+    // The identifier for the key.
+    string key_id = 6 [
+      (google.api.field_behavior) = REQUIRED,
+      (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+      json_name = "kid"
+    ];
+
+    // The identifier of the key material.
+    string material_id = 7 [
+      (google.api.field_behavior) = REQUIRED,
+      (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"},
+      json_name = "mid"
+    ];
+  }
+
+  // Header of the crypto key.
+  Header header = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "header"
+  ];
+
+  // The key material.
+  crypto.KeyMaterial material = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    json_name = "material"
+  ];
 }
