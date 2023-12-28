@@ -1,0 +1,310 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.kms.v1alpha;
+
+import "blocky/api/annotations.proto";
+import "blocky/kms/crypto/algorithm.proto";
+import "blocky/kms/crypto/encrypted_content.proto";
+import "blocky/kms/crypto/signature.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+
+// A service allows usage of cryptographic keys for signing and encryption.
+service KmsService {
+  // SignContent signs the given data with the given key.
+  rpc SignContent(SignContentRequest) returns (SignContentResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:signContent"};
+  }
+
+  // Verify signed content verifies the given signature with the given key.
+  rpc VerifySignedContent(VerifySignedContentRequest) returns (VerifySignedContentResponse) {
+    option (google.api.http) = {post: "/v1alpha/{project=projects/*}:verifyContent"};
+  }
+
+  // SignBlob creates a raw signature for the given input blob.
+  rpc SignBlob(SignBlobRequest) returns (SignBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:signBlob"};
+  }
+
+  // VerifyBlob verifies if input signature were created for the given input blob.
+  rpc VerifyBlob(VerifyBlobRequest) returns (VerifyBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{project=projects/*}/keys:verifyBlob"};
+  }
+
+  // Encrypts the input content with the given key.
+  rpc EncryptContent(EncryptContentRequest) returns (EncryptContentResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:encrypt"};
+  }
+
+  // Decrypts the input content with the given key.
+  rpc DecryptContent(DecryptContentRequest) returns (DecryptContentResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:decrypt"};
+  }
+
+  // EncryptBlob encrypts the input blob with the given key.
+  rpc EncryptBlob(EncryptBlobRequest) returns (EncryptBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:encryptBlob"};
+  }
+
+  // DecryptBlob decrypts the input blob with the given key.
+  rpc DecryptBlob(DecryptBlobRequest) returns (DecryptBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:decryptBlob"};
+  }
+}
+
+// SignContentRequest is the request for the Sign method.
+message SignContentRequest {
+  // Required. The resource name that should be used to sign the content.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The content to sign.
+  bytes content = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// SignContentResponse is the response for the Sign method.
+message SignContentResponse {
+  // The key material that was used to sign the content.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to sign the content.
+  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Protobuf web signature
+  crypto.SignedContent pws = 3;
+}
+
+// VerifySignatureRequest is the request for the Verify method.
+message VerifySignedContentRequest {
+  // The project identifier that the key used to sign belongs to.
+  string project = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Protobuf web signature
+  crypto.SignedContent pws = 2;
+}
+
+// VerifySignatureResponse is the response for the Verify method.
+message VerifySignedContentResponse {
+  // The key material resource that was used to sign the content.
+  // Format: `projects/*/keys/*/materials/*`
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The content that was signed.
+  bytes content = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Indicates whether the signature is valid.
+  bool valid = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // The signing algorithm that was used to sign the content.
+  crypto.SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SignBlobRequest is the request for the SignBlob method..
+message SignBlobRequest {
+  // Required. The resource name that should be used to sign the content.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The blob to sign.
+  bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SignBlobResponse is the response for the Sign method.
+message SignBlobResponse {
+  // The key material that was used to sign the content.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to sign the content.
+  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The signature of the blob.
+  bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// VerifyBlobRequest is the request for the VerifyBlob method.
+message VerifyBlobRequest {
+  // The key material that was used to sign the content.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The blob that was used to create the signature.
+  bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The signature of the blob, that needs to be verified.
+  bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// VerifyBlobResponse is the response for the VerifyBlob method.
+message VerifyBlobResponse {
+  // The content that was signed.
+  bytes content = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // Indicates whether the signature is valid.
+  bool valid = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The signing algorithm that was used to sign the content.
+  crypto.SignatureAlgorithm algorithm = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptContentRequest is the request for the EncryptContent method.
+message EncryptContentRequest {
+  // Required. The resource name that should be used to encrypt the content.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The content to encrypt.
+  bytes content = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptContentResponse is the response for the EncryptContent method.
+message EncryptContentResponse {
+  // The key material that was used to encrypt the content.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to encrypt the content.
+  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The encrypted content.
+  crypto.EncryptedContent encrypted_content = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptContentRequest is the request for the DecryptContent method.
+message DecryptContentRequest {
+  // Required. The resource name that should be used to decrypt the content.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The encrypted content to decrypt.
+  crypto.EncryptedContent encrypted_content = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptContentResponse is the response for the DecryptContent method.
+message DecryptContentResponse {
+  // The key material that was used to decrypt the content.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to decrypt the content.
+  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The decrypted content.
+  bytes content = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptBlobRequest is the request for the EncryptBlob method.
+message EncryptBlobRequest {
+  // Required. The resource name that should be used to encrypt the blob.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The blob to encrypt.
+  bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptBlobResponse is the response for the EncryptBlob method.
+message EncryptBlobResponse {
+  // The key material that was used to encrypt the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to encrypt the blob.
+  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The cipher text of the encrypted blob.
+  bytes cipher_text = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptBlobRequest is the request for the DecryptBlob method.
+message DecryptBlobRequest {
+  // Required. The resource name that should be used to decrypt the blob.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The cipher text of the encrypted blob.
+  bytes cipher_text = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptBlobResponse is the response for the DecryptBlob method.
+message DecryptBlobResponse {
+  // The key material that was used to decrypt the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to decrypt the blob.
+  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The decrypted blob.
+  bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
+}

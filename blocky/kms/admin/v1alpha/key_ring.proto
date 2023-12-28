@@ -14,14 +14,14 @@
 
 syntax = "proto3";
 
-package blocky.kms.v1alpha;
+package blocky.kms.admin.v1alpha;
 
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/admin/v1alpha;adminpb";
 
 // Is a ring of cryptographic keys, that can be combined and used for multiple purposes.
 message KeyRing {

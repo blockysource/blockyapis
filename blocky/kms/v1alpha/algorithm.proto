@@ -19,7 +19,7 @@ package blocky.kms.v1alpha;
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
 
 // KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
 enum KeyUse {

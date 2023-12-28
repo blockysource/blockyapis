@@ -20,7 +20,7 @@ import "blocky/kms/v1alpha/algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsv1alpha";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
 
 
 // SignedContent is a message that represents a Protobuf Web Signature.
