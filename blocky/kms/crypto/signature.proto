@@ -22,7 +22,6 @@ import "google/api/resource.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/kms/cryptopb;cryptopb";
 
-
 // SignedContent is a message that represents a Protobuf Web Signature.
 // The resultant signature is in two steps:
 // 1. The Signature message with only the header and content fields are serialized and signed using the key.
@@ -35,24 +34,16 @@ message SignedContent {
       json_name = "alg"
     ];
 
-    // Key identifier is the identifier of the key used to sign the content.
+    // Key material resource is the material of the key used to sign the content.
     // This is not a full resource name, but just a key identifier.
-    string key_id = 2 [
-      (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+    string key_material = 2 [
+      (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"},
       (google.api.field_behavior) = REQUIRED,
       json_name = "kid"
     ];
 
-    // Key material id is the material of the key used to sign the content.
-    // This is not a full resource name, but just a key identifier.
-    string material_id = 3 [
-      (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"},
-      (google.api.field_behavior) = REQUIRED,
-      json_name = "mid"
-    ];
-
     // Metadata is the metadata of the signature.
-    map<string, string> metadata = 4 [
+    map<string, string> metadata = 3 [
       (google.api.field_behavior) = OPTIONAL,
       json_name = "meta"
     ];

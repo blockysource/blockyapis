@@ -17,11 +17,11 @@ syntax = "proto3";
 package blocky.kms.v1alpha;
 
 import "blocky/api/annotations.proto";
-import "blocky/kms/v1alpha/key.proto";
-import "blocky/kms/v1alpha/key_ring.proto";
 import "blocky/kms/crypto/algorithm.proto";
 import "blocky/kms/crypto/encrypted_content.proto";
 import "blocky/kms/crypto/signature.proto";
+import "blocky/kms/v1alpha/key.proto";
+import "blocky/kms/v1alpha/key_ring.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
@@ -158,7 +158,7 @@ service KmsService {
   }
 
   // SignContent signs the given data with the given key.
-  rpc SignContent(SignContentRequest) returns (SignContentResponse) {
+  rpc SignContent(SignContentRequest) returns (crypto.SignedContent) {
     option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:signContent"};
   }
 
@@ -432,7 +432,8 @@ message UpdateKeyRingRequest {
   ];
 
   // Required, resource to update.
-  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
+  KeyRing key_ring =
+2 [(google.api.field_behavior) = REQUIRED];
 
   // The list of fields to update.
   // If empty, all modifiable fields will be updated.
@@ -465,20 +466,7 @@ message SignContentRequest {
   bytes content = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// SignContentResponse is the response for the Sign method.
-message SignContentResponse {
-  // The key material that was used to sign the content.
-  string key_material = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
-  ];
 
-  // The algorithm that was used to sign the content.
-  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // Protobuf web signature
-  crypto.SignedContent pws = 3;
-}
 
 // VerifySignatureRequest is the request for the Verify method.
 message VerifySignedContentRequest {
@@ -554,6 +542,9 @@ message VerifyBlobRequest {
 
   // The signature of the blob, that needs to be verified.
   bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // The algorithm that was used to sign the content.
+  crypto.SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
 // VerifyBlobResponse is the response for the VerifyBlob method.
