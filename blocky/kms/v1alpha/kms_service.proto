@@ -157,6 +157,17 @@ service KmsService {
     option (google.api.method_signature) = "name";
   }
 
+  // SignBlob signs the given data with the given key.
+  rpc SignBlob(SignBlobRequest) returns (SignBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:signBlob"};
+  }
+
+  // VerifyBlob verifies the given signature with the given key.
+  rpc VerifyBlob(VerifyBlobRequest) returns (VerifyBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{project=projects/*}:verifyBlob"};
+  }
+
+
   // SignContent signs the given data with the given key.
   rpc SignContent(SignContentRequest) returns (crypto.SignedContent) {
     option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:signContent"};
@@ -167,15 +178,6 @@ service KmsService {
     option (google.api.http) = {post: "/v1alpha/{project=projects/*}:verifyContent"};
   }
 
-  // SignBlob creates a raw signature for the given input blob.
-  rpc SignBlob(SignBlobRequest) returns (SignBlobResponse) {
-    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:signBlob"};
-  }
-
-  // VerifyBlob verifies if input signature were created for the given input blob.
-  rpc VerifyBlob(VerifyBlobRequest) returns (VerifyBlobResponse) {
-    option (google.api.http) = {post: "/v1alpha/{project=projects/*}/keys:verifyBlob"};
-  }
 
   // Encrypts the input content with the given key.
   rpc EncryptContent(EncryptContentRequest) returns (EncryptContentResponse) {
@@ -432,8 +434,7 @@ message UpdateKeyRingRequest {
   ];
 
   // Required, resource to update.
-  KeyRing key_ring =
-2 [(google.api.field_behavior) = REQUIRED];
+  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The list of fields to update.
   // If empty, all modifiable fields will be updated.
@@ -451,6 +452,71 @@ message DeleteKeyRingRequest {
   ];
 }
 
+// SignBlobRequest is the request for the SignBlob method.
+// This request is not embedding any metadata, but simply signs the blob using the key.
+// The key is identified by the resource name.
+// This can be directly used for some custom signing operations like signing a JWT.
+message SignBlobRequest {
+  // Required. The resource name that should be used to sign the blob.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // Algorithm used to sign the blob.
+  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The blob to sign.
+  bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SignBlobResponse is the response for the SignBlob method.
+message SignBlobResponse {
+  // The key material that was used to sign the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to sign the blob.
+  // If not specified, the algorithm will be derived from the key.
+  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The signature of the blob.
+  bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// VerifyBlobRequest is the request for the VerifyBlob method.
+// This request is not embedding any metadata, but simply verifies the blob using the key.
+// The key is identified by the resource name.
+// This can be directly used for some custom signing operations like verifying a JWT.
+message VerifyBlobRequest {
+  // The key material that was used to sign the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm used to sign the blob.
+  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The blob to verify.
+  bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // The signature of the blob.
+  bytes signature = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// VerifyBlobResponse is the response for the VerifyBlob method.
+message VerifyBlobResponse {
+  // Defines if the signature was valid.
+  bool valid = 1;
+}
+
+
 // SignContentRequest is the request for the Sign method.
 message SignContentRequest {
   // Required. The resource name that should be used to sign the content.
@@ -463,10 +529,14 @@ message SignContentRequest {
   ];
 
   // The content to sign.
-  bytes content = 2 [(google.api.field_behavior) = OPTIONAL];
+  bytes content = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Algorithm used to sign the content.
+  crypto.SignatureAlgorithm algorithm = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Metadata to embed in to signature header.
+  map<string, string> meta = 4 [(google.api.field_behavior) = OPTIONAL];
 }
-
-
 
 // VerifySignatureRequest is the request for the Verify method.
 message VerifySignedContentRequest {
@@ -477,86 +547,13 @@ message VerifySignedContentRequest {
   ];
 
   // Protobuf web signature
-  crypto.SignedContent pws = 2;
+  crypto.SignedContent signed_content = 2;
 }
 
 // VerifySignatureResponse is the response for the Verify method.
 message VerifySignedContentResponse {
-  // The key material resource that was used to sign the content.
-  // Format: `projects/*/keys/*/materials/*`
-  string key_material = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
-  ];
-
-  // The content that was signed.
-  bytes content = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // Indicates whether the signature is valid.
-  bool valid = 3 [(google.api.field_behavior) = REQUIRED];
-
-  // The signing algorithm that was used to sign the content.
-  crypto.SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
-}
-
-// SignBlobRequest is the request for the SignBlob method..
-message SignBlobRequest {
-  // Required. The resource name that should be used to sign the content.
-  // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "*"}
-  ];
-
-  // The blob to sign.
-  bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
-}
-
-// SignBlobResponse is the response for the Sign method.
-message SignBlobResponse {
-  // The key material that was used to sign the content.
-  string key_material = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
-  ];
-
-  // The algorithm that was used to sign the content.
-  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // The signature of the blob.
-  bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-// VerifyBlobRequest is the request for the VerifyBlob method.
-message VerifyBlobRequest {
-  // The key material that was used to sign the content.
-  string key_material = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/KeyMaterial"}
-  ];
-
-  // The blob that was used to create the signature.
-  bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // The signature of the blob, that needs to be verified.
-  bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
-
-  // The algorithm that was used to sign the content.
-  crypto.SignatureAlgorithm algorithm = 4 [(google.api.field_behavior) = REQUIRED];
-}
-
-// VerifyBlobResponse is the response for the VerifyBlob method.
-message VerifyBlobResponse {
-  // The content that was signed.
-  bytes content = 1 [(google.api.field_behavior) = REQUIRED];
-
-  // Indicates whether the signature is valid.
-  bool valid = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // The signing algorithm that was used to sign the content.
-  crypto.SignatureAlgorithm algorithm = 3 [(google.api.field_behavior) = REQUIRED];
+  // Defines if the signed content was valid.
+  bool valid = 1;
 }
 
 // EncryptContentRequest is the request for the EncryptContent method.

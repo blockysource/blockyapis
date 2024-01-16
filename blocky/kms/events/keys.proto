@@ -22,27 +22,18 @@ option go_package = "github.com/blockysource/go-genproto/blocky/kms/events;kmsev
 
 // KeyCreated is published when a key is created.
 message KeyCreated {
-  // The resource name of the organization that owns the key.
-  string organization = 1;
-
-  // The resource name of the project to which the key belongs.
-  string project = 2;
-
   // The resource name of the key.
-  string key = 3;
+  string name = 1;
 
   // The algorithm type of the key.
-  crypto.KeyAlgorithmType algorithm_type = 4;
+  crypto.KeyAlgorithmType algorithm_type = 2;
 }
 
 // KeyMaterialCreated is a message of an event when a key material is created.
 message KeyMaterialCreated {
-  // The resource name of the organization that owns the key.
-  string organization = 1;
-
   // The resource name of key material.
-  string name = 2;
+  string name = 1;
 
   // The algorithm type of the key.
-  crypto.KeyAlgorithmType algorithm_type = 5;
+  crypto.KeyAlgorithmType algorithm_type = 2;
 }

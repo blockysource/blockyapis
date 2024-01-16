@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package blocky.api;
 
-import "google/protobuf/descriptor.proto";
-
 option go_package = "github.com/blockysource/go-genproto/blocky/api/annotationspb;annotationspb";
 
 // MessageProperties is used to annotate messages with additional information.
