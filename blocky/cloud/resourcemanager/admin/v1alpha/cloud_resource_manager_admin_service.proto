@@ -16,7 +16,6 @@ syntax = "proto3";
 
 package blocky.cloud.resourcemanager.admin.v1alpha;
 
-import "blocky/cloud/resourcemanager/admin/v1alpha/project.proto";
 import "blocky/cloud/resourcemanager/admin/v1alpha/user.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
@@ -58,3 +57,11 @@ message GetUserByExternalIdRequest {
   ExternalIdentity external_id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
+// A request message for DeleteUser method
+message DeleteUserRequest {
+  // The name of the account resource to delete
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/User"}
+  ];
+}

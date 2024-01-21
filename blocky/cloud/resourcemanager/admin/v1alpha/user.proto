@@ -28,7 +28,6 @@ message User {
     type: "cloudresourcemanager.blockyapis.com/User"
     pattern: "users/{user}"
     name_field: "name"
-    history: ORIGINALLY_SINGLE_PATTERN
   };
 
   // The resource name of the User.
@@ -40,6 +39,9 @@ message User {
 
   // Output only. The unique identifier of the user.
   string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Globally unique, user provided identifier of the user.
+  string user_id = 9 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
 
   // Required, immutable. A unique external identifier of the user.
   ExternalIdentity external_identity = 3 [

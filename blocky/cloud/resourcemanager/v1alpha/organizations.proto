@@ -18,38 +18,33 @@ package blocky.cloud.resourcemanager.v1alpha;
 
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
 
-// Project represents a cloud project resource.
-message Project {
-  // Resource name of the Project
-  // The format of the project resource name:
-  // `projects/*`
-  string name = 1 [
-    (google.api.field_behavior) = IDENTIFIER,
-    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
-  ];
+// A service for managing cloud organizations.
+service Organizations {
+  // Creates a new organization.
+  rpc CreateOrganization(CreateOrganizationRequest) returns (Organization);
 
-  // The unique server-generated UUID identifier for the key.
-  // It could be used as the project identifier in its resource name.
-  string uid = 2 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
-    (google.api.field_behavior) = IMMUTABLE
-  ];
+  // Gets the organization by the identifier.
+  rpc GetOrganization(GetOrganizationRequest) returns (Organization);
 
-  // The aliases that can be used to refer to the project.
-  // The full path of the alias is:
-  // 'projects/{project_alias}'
-  repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Updates the organization.
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (Organization);
 
-  // The display name of the project.
-  string display_name = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+  // Deletes the organization by the identifier.
+  rpc DeleteOrganization(DeleteOrganizationRequest) returns (google.protobuf.Empty);
 
-  // Time when the key was created.
-  google.protobuf.Timestamp create_time = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Adds the user to the project.
+  rpc AddOrganizationUser(AddOrganizationUserRequest) returns (OrganizationUser);
+
+  // Remove the user from the project.
+  rpc RemoveOrganizationUser(RemoveOrganizationUserRequest) returns (google.protobuf.Empty);
+
+  // Lists the users of the organization.
+  rpc ListOrganizationUsers(ListOrganizationUsersRequest) returns (ListOrganizationUsersResponse);
 }
 
 // Organization represents a cloud organization resource.
@@ -132,47 +127,86 @@ message OrganizationUser {
   string avatar_url = 16 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
-// ProjectUser represents a user resource registered for a project.
-message ProjectUser {
-  option (google.api.resource) = {
-    type: "cloudresourcemanager.blockyapis.com/ProjectUser"
-    pattern: "projects/{project}/users/{user}"
-    name_field: "name"
-  };
+// A request message for CreateOrganization method.
+message CreateOrganizationRequest {
+  // The organization to create.
+  Organization organization = 1 [(google.api.field_behavior) = REQUIRED];
+}
 
-  // Resource name of the ProjectUser
-  // The format of the project user resource name:
-  // `projects/{project}/users/{user}`
+// A request message for GetOrganization method.
+message GetOrganizationRequest {
+  // The identifier of the organization.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for UpdateOrganization method.
+message UpdateOrganizationRequest {
+  // The resource name of the organization to update.
   string name = 1 [
-    (google.api.field_behavior) = IDENTIFIER,
-    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/ProjectUser"}
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
   ];
 
-  // The unique server-generated UUID identifier for the key.
-  // It could be used as the project user identifier in its resource name.
-  string uid = 2 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
-    (google.api.field_behavior) = IMMUTABLE
+  // The organization to update.
+  Organization organization = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for DeleteOrganization method.
+message DeleteOrganizationRequest {
+  // The identifier of the organization.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for AddOrganizationUser method.
+message AddOrganizationUserRequest {
+  // The identifier of the organization.
+  string organization = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
   ];
 
-  // The identifier of the User.
-  string user = 3 [
-    (google.api.field_behavior) = IMMUTABLE,
-    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"}
+  // The identifier of the user.
+  string user = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/User"}
+  ];
+}
+
+// A request message for RemoveOrganizationUser method.
+message RemoveOrganizationUserRequest {
+  // The resource name of the organization user.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/OrganizationUser"}
+  ];
+}
+
+// A request message for ListOrganizationUsers method.
+message ListOrganizationUsersRequest {
+  // The identifier of the organization.
+  string organization = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
   ];
 
-  // Time when the key was created.
-  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The maximum number of users to return.
+  int32 page_size = 2;
 
-  // The time when the project user was last modified.
-  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // A page token received from the previous `ListOrganizationUsers` call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to `ListOrganizationUsers` must match
+  // the call that provided the page token.
+  string page_token = 3;
+}
 
-  // The user's email address.
-  string email = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+// A response message for ListOrganizationUsers method.
+message ListOrganizationUsersResponse {
+  // The users of the organization in this page.
+  repeated OrganizationUser users = 1;
 
-  // The user's role in the project.
-  string role = 15 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The user's avatar URL.
-  string avatar_url = 16 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // A token to retrieve the next page of results.
+  // Pass this value in the `page_token` field in the subsequent call to `ListOrganizationUsers` method
+  // to retrieve the next page of results.
+  string next_page_token = 2;
 }
