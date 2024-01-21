@@ -1,0 +1,74 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.cloud.resourcemanager.admin.v1alpha;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/admin/v1alpha;cloudresourcemanager_adminpb";
+
+// A message that represents a User of the cloud resources.
+message User {
+  option (google.api.resource) = {
+    type: "cloudresourcemanager.blockyapis.com/User"
+    pattern: "users/{user}"
+    name_field: "name"
+    history: ORIGINALLY_SINGLE_PATTERN
+  };
+
+  // The resource name of the User.
+  // Format: `users/{user}`
+  string name = 1 [
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"},
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // Output only. The unique identifier of the user.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Required, immutable. A unique external identifier of the user.
+  ExternalIdentity external_identity = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // Output only. The time when the user was created.
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Output only. The time when the user was last updated.
+  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The email address of the user. Optional, non-unique in Cloud Resource.
+  string email = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // The display name of the user. If not provided, some default, generated
+  // name will be used.
+  string display_name = 7 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The avatar URL of the user.
+  string avatar_url = 8 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// An identifier from external identity provider service.
+message ExternalIdentity {
+  // The external identity provider service name.
+  string provider = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // The unique identifier of the user in the external identity provider service.
+  string id = 2 [(google.api.field_behavior) = REQUIRED];
+}

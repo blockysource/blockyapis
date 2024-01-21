@@ -90,7 +90,6 @@ message Key {
   // The aliases that can be used to refer to the key.
   // The full path of the alias is:
   // 'projects/{project}/keys/{key_alias}'
-  // Any modification of aliases needs to be done via the KeyAdminService API.
   repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The key algorithm type

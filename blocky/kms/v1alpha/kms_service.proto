@@ -218,7 +218,7 @@ message CreateKeyRequest {
 message ListKeysRequest {
   // Required. The resource name of the project to list keys for.
   // Format: `projects/{project}}`
-  string parent = 1 [(google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}];
+  string parent = 1 [(google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}];
 
   // The maximum number of keys to return. The service may return fewer than
   // this value. If unspecified, at most 50 keys will be returned. The maximum
@@ -543,7 +543,7 @@ message VerifySignedContentRequest {
   // The project identifier that the key used to sign belongs to.
   string project = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
   ];
 
   // Protobuf web signature

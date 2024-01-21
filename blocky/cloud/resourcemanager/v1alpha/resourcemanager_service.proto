@@ -1,0 +1,225 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.cloud.resourcemanager.v1alpha;
+
+import "blocky/cloud/resourcemanager/v1alpha/resource.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
+
+// A service to manage cloud resources.
+service CloudResourceManagerService {
+  // Creates a new project.
+  rpc CreateProject(CreateProjectRequest) returns (Project);
+
+  // Gets the project by the identifier.
+  rpc GetProject(GetProjectRequest) returns (Project);
+
+  // Lists the projects that user is a member of.
+  // If the user is a member of the organization, the projects of the organization are returned as well.
+  rpc ListProjects(ListProjectsRequest) returns (ListProjectsResponse);
+
+  // Updates the project.
+  rpc UpdateProject(UpdateProjectRequest) returns (Project);
+
+  // Deletes the project by the identifier.
+  rpc DeleteProject(DeleteProjectRequest) returns (google.protobuf.Empty);
+
+  // Creates a new organization.
+  rpc CreateOrganization(CreateOrganizationRequest) returns (Organization);
+
+  // Gets the organization by the identifier.
+  rpc GetOrganization(GetOrganizationRequest) returns (Organization);
+
+  // Updates the organization.
+  rpc UpdateOrganization(UpdateOrganizationRequest) returns (Organization);
+
+  // Deletes the organization by the identifier.
+  rpc DeleteOrganization(DeleteOrganizationRequest) returns (google.protobuf.Empty);
+
+  // Adds the user to the project.
+  rpc AddOrganizationUser(AddOrganizationUserRequest) returns (OrganizationUser);
+
+  // Remove the user from the project.
+  rpc RemoveOrganizationUser(RemoveOrganizationUserRequest) returns (google.protobuf.Empty);
+
+  // Lists the users of the organization.
+  rpc ListOrganizationUsers(ListOrganizationUsersRequest) returns (ListOrganizationUsersResponse);
+}
+
+// A request message for DeleteUser method.
+message DeleteUserRequest {
+  // The identifier of the user.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for CreateProject method.
+message CreateProjectRequest {
+  // The name of the organization, which will be the parent of the project.
+  // This is optional and can be omitted if the user wants to create its own project.
+  string organization = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
+  ];
+
+  // The project to create.
+  Project project = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for GetProject method.
+message GetProjectRequest {
+  // The identifier of the project.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for ListProjects method.
+message ListProjectsRequest {
+  // The identifier of the parent.
+  // It's either the organization or the user.
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
+  ];
+
+  // The maximum number of projects to return.
+  int32 page_size = 2;
+
+  // A page token received from the previous `ListProjects` call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to `ListProjects` must match
+  // the call that provided the page token.
+  string page_token = 3;
+}
+
+// A response message for ListProjects method.
+message ListProjectsResponse {
+  // The projects.
+  repeated Project projects = 1;
+
+  // A token to retrieve the next page of results.
+  // Pass this value in the `page_token` field in the subsequent call to `ListProjects` method
+  // to retrieve the next page of results.
+  string next_page_token = 2;
+}
+
+// A request message for UpdateProject method.
+message UpdateProjectRequest {
+  // The resource name of the project to update.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Project"}
+  ];
+
+  // The project to update.
+  Project project = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for DeleteProject method.
+message DeleteProjectRequest {
+  // The identifier of the project.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Project"}
+  ];
+}
+
+// A request message for CreateOrganization method.
+message CreateOrganizationRequest {
+  // The organization to create.
+  Organization organization = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for GetOrganization method.
+message GetOrganizationRequest {
+  // The identifier of the organization.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for UpdateOrganization method.
+message UpdateOrganizationRequest {
+  // The resource name of the organization to update.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
+  ];
+
+  // The organization to update.
+  Organization organization = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for DeleteOrganization method.
+message DeleteOrganizationRequest {
+  // The identifier of the organization.
+  string name = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// A request message for AddOrganizationUser method.
+message AddOrganizationUserRequest {
+  // The identifier of the organization.
+  string organization = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
+  ];
+
+  // The identifier of the user.
+  string user = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/User"}
+  ];
+}
+
+// A request message for RemoveOrganizationUser method.
+message RemoveOrganizationUserRequest {
+  // The resource name of the organization user.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/OrganizationUser"}
+  ];
+}
+
+// A request message for ListOrganizationUsers method.
+message ListOrganizationUsersRequest {
+  // The identifier of the organization.
+  string organization = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}
+  ];
+
+  // The maximum number of users to return.
+  int32 page_size = 2;
+
+  // A page token received from the previous `ListOrganizationUsers` call.
+  // Provide this to retrieve the subsequent page.
+  //
+  // When paginating, all other parameters provided to `ListOrganizationUsers` must match
+  // the call that provided the page token.
+  string page_token = 3;
+}
+
+// A response message for ListOrganizationUsers method.
+message ListOrganizationUsersResponse {
+  // The users.
+  repeated OrganizationUser users = 1;
+
+  // A token to retrieve the next page of results.
+  // Pass this value in the `page_token` field in the subsequent call to `ListOrganizationUsers` method
+  // to retrieve the next page of results.
+  string next_page_token = 2;
+}

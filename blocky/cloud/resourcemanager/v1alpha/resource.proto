@@ -1,0 +1,178 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.cloud.resourcemanager.v1alpha;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
+
+// Project represents a cloud project resource.
+message Project {
+  // Resource name of the Project
+  // The format of the project resource name:
+  // `projects/*`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
+  // The unique server-generated UUID identifier for the key.
+  // It could be used as the project identifier in its resource name.
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // The aliases that can be used to refer to the project.
+  // The full path of the alias is:
+  // 'projects/{project_alias}'
+  repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the project.
+  string display_name = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// Organization represents a cloud organization resource.
+message Organization {
+  // Resource name of the Organization
+  // The format of the organization resource name:
+  // `organizations/*`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Organization"}
+  ];
+
+  // The unique server-generated UUID identifier for the key.
+  // It could be used as the organization identifier in its resource name.
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // The aliases that can be used to refer to the organization.
+  // The full path of the alias is:
+  // 'organizations/{organization_alias}'
+  repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the organization.
+  string display_name = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The time when the organization was last modified.
+  google.protobuf.Timestamp update_time = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The owner of the organization.
+  string owner = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// OrganizationUser represents a user resource registered for an organization.
+message OrganizationUser {
+  option (google.api.resource) = {
+    type: "cloudresourcemanager.blockyapis.com/OrganizationUser"
+    pattern: "organizations/{organization}/users/{user}"
+    name_field: "name"
+  };
+
+  // Resource name of the OrganizationUser
+  // The format of the organization user resource name:
+  // `organizations/{organization}/users/{user}`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/OrganizationUser"}
+  ];
+
+  // The unique server-generated UUID identifier for the key.
+  // It could be used as the organization user identifier in its resource name.
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // The identifier of the User.
+  string user = 3 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"}
+  ];
+
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The time when the organization user was last modified.
+  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The user's email address.
+  string email = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The user's role in the organization.
+  string role = 15 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The user's avatar URL.
+  string avatar_url = 16 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// ProjectUser represents a user resource registered for a project.
+message ProjectUser {
+  option (google.api.resource) = {
+    type: "cloudresourcemanager.blockyapis.com/ProjectUser"
+    pattern: "projects/{project}/users/{user}"
+    name_field: "name"
+  };
+
+  // Resource name of the ProjectUser
+  // The format of the project user resource name:
+  // `projects/{project}/users/{user}`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/ProjectUser"}
+  ];
+
+  // The unique server-generated UUID identifier for the key.
+  // It could be used as the project user identifier in its resource name.
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // The identifier of the User.
+  string user = 3 [
+    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"}
+  ];
+
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The time when the project user was last modified.
+  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The user's email address.
+  string email = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The user's role in the project.
+  string role = 15 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The user's avatar URL.
+  string avatar_url = 16 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
