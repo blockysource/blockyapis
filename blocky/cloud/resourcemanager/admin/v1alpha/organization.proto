@@ -14,14 +14,13 @@
 
 syntax = "proto3";
 
-package blocky.cloud.resourcemanager.v1alpha;
+package blocky.cloud.resourcemanager.admin.v1alpha;
 
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/admin/v1alpha;cloudresourcemanageradminpb";
 
 // Organization represents a cloud organization resource.
 message Organization {
@@ -40,38 +39,29 @@ message Organization {
     (google.api.field_behavior) = IMMUTABLE
   ];
 
-  // The aliases that can be used to refer to the organization.
-  // The full path of the alias is:
-  // 'organizations/{organization_alias}'
-  repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
-
   // The display name of the organization.
-  string display_name = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+  string display_name = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
 
-  // Time when the organization was created.
-  google.protobuf.Timestamp create_time = 12 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The time when the organization was last modified.
-  google.protobuf.Timestamp update_time = 13 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The owner of the organization.
-  string owner = 14 [
-    (google.api.field_behavior) = OUTPUT_ONLY,
-    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"}
-  ];
+  string owner = 6 [(google.api.field_behavior) = REQUIRED];
 }
 
-// OrganizationUser represents a user resource registered for an organization.
+// OrganizationUser represents a user account that is a user of an organization.
 message OrganizationUser {
   option (google.api.resource) = {
     type: "cloudresourcemanager.blockyapis.com/OrganizationUser"
-    pattern: "organizations/{organization}/users/{user}"
-    name_field: "name"
+    pattern: "organizations/{organization}/users/{organization_user}"
+    plural: "users"
   };
-
   // Resource name of the OrganizationUser
   // The format of the organization user resource name:
-  // `organizations/{organization}/users/{user}`
+  // `organizations/*/users/*`
   string name = 1 [
     (google.api.field_behavior) = IDENTIFIER,
     (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/OrganizationUser"}
@@ -84,25 +74,17 @@ message OrganizationUser {
     (google.api.field_behavior) = IMMUTABLE
   ];
 
-  // The identifier of the User.
+  // The resource name of the user that is a user of the organization.
+  // The format of the user resource name:
+  // `users/*`
   string user = 3 [
-    (google.api.field_behavior) = IMMUTABLE,
+    (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"}
   ];
 
-  // Time when the user was added to the organization.
+  // The time when a user was added to the organization.
   google.protobuf.Timestamp create_time = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The time when the organization user was last modified.
-  google.protobuf.Timestamp update_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The user's email address.
-  string email = 14 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The display name of the user. If not provided, some default, generated
-  // name will be used.
-  string display_name = 15 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The user's avatar URL.
-  string avatar_url = 16 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The time when a user was removed from the organization.
+  google.protobuf.Timestamp delete_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 }

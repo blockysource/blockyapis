@@ -18,8 +18,8 @@ package blocky.cloud.resourcemanager.v1alpha;
 
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
 
@@ -71,39 +71,30 @@ message Project {
     (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
   ];
 
-  // The unique server-generated KSUID identifier for the key.
+  // Globally unique server-generated identifier for the key.
   // It could be used as the project identifier in its resource name.
   string uid = 2 [
     (google.api.field_behavior) = OUTPUT_ONLY,
     (google.api.field_behavior) = IMMUTABLE
   ];
 
-  // Globally unique, user-assigned project identifier.
-  // The value needs to be 6-30 lowercase ASCII letters, digits, or hyphens.
-  // It must start with a letter, and contain no spaces.
-  // This value is immutable after project creation time.
-  string project_id = 3 [
-    (google.api.field_behavior) = IMMUTABLE,
-    (google.api.field_behavior) = REQUIRED
-  ];
-
   // The project's current state.
-  State state = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  State state = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The display name of the project.
-  string display_name = 5 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+  string display_name = 4 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
 
   // Time when the key was created.
-  google.protobuf.Timestamp create_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The time when the project was last modified.
-  google.protobuf.Timestamp update_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The time when the project was marked for deletion.
-  google.protobuf.Timestamp delete_time = 8 [(google.api.field_behavior) = OUTPUT_ONLY];
+  google.protobuf.Timestamp delete_time = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // An optional parent resource name of the project.
-  string parent = 9 [(google.api.field_behavior) = OPTIONAL];
+  string parent = 8 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // ProjectUser represents a user that has access to a project resource.

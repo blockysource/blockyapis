@@ -18,12 +18,102 @@ package blocky.cloud.resourcemanager.event;
 
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/event;cloudresourcemanagereventpb";
 
+// UserCreated is an event message describing a newly created user.
+message UserCreated {
+  // The resource name of the user that was created.
+  // The format is "users/{user}".
+  string name = 1 [
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Globally unique server-assigned id for the user.
+  // This is a 'user' part of the user resource name.
+  string uid = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The email address of the user.
+  string email = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // The display name of the user.
+  string display_name = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // The avatar url of the user.
+  string avatar_url = 5 [(google.api.field_behavior) = OPTIONAL];
+}
+
+//
+
 // ProjectCreated is an event message describing a newly created project.
 message ProjectCreated {
+  // The resource name of the project that was created.
+  // The format is "projects/{project}".
+  string name = 1 [
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"},
+    (google.api.field_behavior) = REQUIRED
+  ];
 
+  // Globally unique server-assigned id for the project.
+  // This is a 'project' part of the project resource name.
+  string uid = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The resource name of the parent of the project.
+  // Eg:
+  //  - "organizations/2bG3wJEPJ6yadR2vRf3HELI0y3J"
+  //  - "users/2bG3svgqR5SHzc4dvZvKZOqpTX8"
+  string parent = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // The display name of the project.
+  string display_name = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrganizationCreated is an event message describing a newly created organization.
+message OrganizationCreated {
+  // The resource name of the organization that was created.
+  // The format is "organizations/{organization}".
+  string name = 1 [
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Organization"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // Globally unique server-assigned id for the organization.
+  // This is a 'organization' part of the organization resource name.
+  string uid = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The resource name of the user owner of the organization.
+  //  - "users/2bG3svgqR5SHzc4dvZvKZOqpTX8"
+  string owner = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"}
+  ];
+
+  // The display name of the organization.
+  string display_name = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OrganizationUserAdded is an event message describing a user being added to an organization.
+message OrganizationUserAdded {
+  // The resource name of the organization that the user was added to.
+  // The format is "organizations/{organization}/users/{organization_user}".
+  string name = 1 [
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/OrganizationUser"},
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // The resource name of the organization that the user was added to.
+  // The format is "organizations/{organization}".
+  string organization = 2 [
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Organization"},
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The resource name of the user that was added to the organization.
+  // The format is "users/{user}".
+  string user = 3 [
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"},
+    (google.api.field_behavior) = REQUIRED
+  ];
 }

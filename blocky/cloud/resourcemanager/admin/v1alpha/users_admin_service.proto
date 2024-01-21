@@ -21,10 +21,10 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/admin/v1alpha;cloudresourcemanager_adminpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/admin/v1alpha;cloudresourcemanageradminpb";
 
 // Administrative service for Cloud Resource Manager.
-service CloudResourceManagerAdminService {
+service UsersAdminService {
   // Registers a new user capable of using cloud resources.
   // The source of the user is not within a domain of cloud resource manager.
   rpc RegisterUser(RegisterUserRequest) returns (User);
@@ -65,3 +65,4 @@ message DeleteUserRequest {
     (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/User"}
   ];
 }
+
