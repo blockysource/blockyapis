@@ -14,13 +14,13 @@
 
 syntax = "proto3";
 
-package blocky.cloud.resourcemanager.event;
+package blocky.cloud.resourcemanager.event.v1alpha;
 
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/event;cloudresourcemanagereventpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/event/v1alpha;eventpb";
 
 // UserCreated is an event message describing a newly created user.
 message UserCreated {
@@ -45,7 +45,6 @@ message UserCreated {
   string avatar_url = 5 [(google.api.field_behavior) = OPTIONAL];
 }
 
-//
 
 // ProjectCreated is an event message describing a newly created project.
 message ProjectCreated {

@@ -20,7 +20,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;resourcemanagerpb";
 
 // A message that represents a User of the cloud resources.
 message User {

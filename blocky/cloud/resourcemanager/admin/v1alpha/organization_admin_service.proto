@@ -103,7 +103,7 @@ message RemoveOrganizationUserRequest {
 
 // A request message for ListOrganizationUsers method.
 message ListOrganizationUsersRequest {
-  // The identifier of the organization.
+  // The resource name of the organization.
   string organization = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "cloudresourcemanager.googleapis.com/Organization"}

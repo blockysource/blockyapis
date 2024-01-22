@@ -20,7 +20,7 @@ import "blocky/cloud/resourcemanager/v1alpha/organizations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;resourcemanagerpb";
 
 // A service for managing cloud organizations.
 service OrganizationsService {

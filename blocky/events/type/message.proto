@@ -14,13 +14,13 @@
 
 syntax = "proto3";
 
-package blocky.event;
+package blocky.events.type;
 
 import "google/api/field_behavior.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/eventpb;eventpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/events/type/eventspb;eventspb";
 
 // Message is a generic event message used for data exchange between services.
 //
@@ -42,7 +42,4 @@ message Message {
 
   // Message payload of the event.
   google.protobuf.Any payload = 4 [(google.api.field_behavior) = REQUIRED];
-
-  // Organization in which this message was
-  string organization = 5 [(google.api.field_behavior) = REQUIRED];
 }

@@ -21,7 +21,7 @@ import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;resourcemanagerpb";
 
 // Organization represents a cloud organization resource.
 message Organization {
@@ -84,7 +84,7 @@ message OrganizationUser {
     (google.api.field_behavior) = IMMUTABLE
   ];
 
-  // The identifier of the User.
+  // The resource name of the User.
   string user = 3 [
     (google.api.field_behavior) = IMMUTABLE,
     (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/User"}
