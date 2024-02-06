@@ -1,4 +1,4 @@
-// Copyright 2024 The Blocky Authors
+// Copyright 2023 The Blocky Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,20 +14,21 @@
 
 syntax = "proto3";
 
-package blocky.kms.v1alpha;
+package blocky.cloud.kms.v1alpha;
 
+import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/kms/v1alpha;cloudkmspb";
 
 // Is a ring of cryptographic keys, that can be combined and used for multiple purposes.
 message KeyRing {
   // The resource name of the key ring.
-  // Key ring names have the form `projects/*/keyRings/*`.
+  // Key ring names have the form `keyRings/*`.
   string name = 1 [
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"},
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyRing"},
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -48,7 +49,7 @@ message KeyRing {
 
   // The resource names of the keys in this key ring.
   repeated string keys = 7 [
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"},
     (google.api.field_behavior) = OPTIONAL
   ];
 

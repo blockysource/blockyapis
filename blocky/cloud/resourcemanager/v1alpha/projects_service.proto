@@ -22,7 +22,7 @@ import "google/api/resource.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;cloudresourcemanagerpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/v1alpha;resourcemanagerpb";
 
 // A service that manages cloud projects..
 service ProjectsService {

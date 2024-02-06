@@ -1,4 +1,4 @@
-// Copyright 2023 The Blocky Authors
+// Copyright 2024 The Blocky Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
 
 syntax = "proto3";
 
-package blocky.kms.crypto;
+package blocky.type.crypto;
 
 import "google/api/field_behavior.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/cryptopb;cryptopb";
+option go_package = "github.com/blockysource/go-genproto/blocky/type/crypto;cryptopb";
 
 // Is the specified RSA key size supported.
 enum RSAKeySize {

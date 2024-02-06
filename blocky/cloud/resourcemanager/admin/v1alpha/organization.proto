@@ -20,7 +20,7 @@ import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/admin/v1alpha;cloudresourcemanageradminpb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/resourcemanager/admin/v1alpha;resourcemanageradminpb";
 
 // Organization represents a cloud organization resource.
 message Organization {

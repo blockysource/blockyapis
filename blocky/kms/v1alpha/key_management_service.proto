@@ -1,0 +1,675 @@
+// Copyright 2024 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.kms.v1alpha;
+
+import "blocky/api/annotations.proto";
+import "blocky/kms/v1alpha/key.proto";
+import "blocky/kms/v1alpha/key_ring.proto";
+import "blocky/type/crypto/algorithm.proto";
+import "blocky/type/crypto/encrypted_content.proto";
+import "blocky/type/crypto/signature.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+
+// A KeyManagementService manages the lifecycle of cryptographic keys
+service KeyManagementService {
+  rpc CreateKey(CreateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      post: "/v1alpha/keys"
+      body: "*"
+    };
+    option (google.api.method_signature) = "key";
+  }
+
+  rpc GetKey(GetKeyRequest) returns (Key) {
+    option (google.api.http) = {get: "/v1alpha/{name=keys/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Lists Keys.
+  rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
+    option (google.api.http) = {get: "/v1alpha/keys"};
+  }
+
+  // Updates the metadata and/or key material of a Key.
+  rpc UpdateKey(UpdateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{key.name=keys/*}"
+      body: "*"
+    };
+    option (google.api.method_signature) = "key";
+  }
+
+  // Deletes a Key.
+  rpc DeleteKey(DeleteKeyRequest) returns (Key) {
+    option (google.api.http) = {delete: "/v1alpha/{name=keys/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Rotates the key material of a Key.
+  rpc RotateKey(RotateKeyRequest) returns (Key) {
+    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:rotate"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Gets the key material of a Key.
+  rpc GetKeyMaterial(GetKeyMaterialRequest) returns (KeyMaterial) {
+    option (google.api.http) = {get: "/v1alpha/{name=keys/*}/material"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Lists cryptographic keys that matches given query.
+  rpc ListKeyMaterials(ListKeyMaterialsRequest) returns (ListKeyMaterialsResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=keys/*}/materials"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 1000,
+        default_size: 10
+      }
+      order_by: "create_time desc"
+    };
+  }
+
+  // Gets the private key material content.
+  rpc GetKeyMaterialContent(GetKeyMaterialContentRequest) returns (KeyMaterialContent) {
+    option (google.api.http) = {get: "/v1alpha/{name=keys/*/materials/*}/private"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Gets a batch of private key material contents.
+  rpc BatchGetKeyMaterialContents(BatchGetKeyMaterialContentsRequest) returns (BatchGetKeyMaterialContentsResponse) {
+    option (google.api.http) = {post: "/v1alpha/{parent=keys/*}/materials:batchGet"};
+    option (google.api.method_signature) = "parent";
+  }
+
+  // SignBlob signs the given data with the given key.
+  // The client is responsible for either hard-coding the pair of key and algorithm or
+  // encode specific metadata into the blob to be signed.
+  // This might be used for the needs of creating a JWT token by storing storing the algorithm and key id in the
+  // tokens header.
+  rpc SignBlob(SignBlobRequest) returns (SignBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:signBlob"};
+  }
+
+  // VerifyBlob verifies the given signature with the given key.
+  rpc VerifyBlob(VerifyBlobRequest) returns (VerifyBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{project=:verifyBlob"};
+  }
+
+  // SignContent signs the given data with the given key.
+  // Compared to the SignBlob, this method encodes required metadata into the signature header.
+  // This can be used as a generic signing operation which results with well-known structure of the signature.
+  rpc SignContent(SignContentRequest) returns (blocky.type.crypto.SignedContent) {
+    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:signContent"};
+  }
+
+  // Verify signed content verifies the given signature with the given key.
+  rpc VerifySignedContent(VerifySignedContentRequest) returns (VerifySignedContentResponse) {
+    option (google.api.http) = {post: "/v1alpha/{project=:verifyContent"};
+  }
+
+  // Encrypts the input content with the given key.
+  rpc EncryptContent(EncryptContentRequest) returns (EncryptContentResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:encrypt"};
+  }
+
+  // Decrypts the input content with the given key.
+  rpc DecryptContent(DecryptContentRequest) returns (DecryptContentResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:decrypt"};
+  }
+
+  // EncryptBlob encrypts the input blob with the given key.
+  rpc EncryptBlob(EncryptBlobRequest) returns (EncryptBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:encryptBlob"};
+  }
+
+  // DecryptBlob decrypts the input blob with the given key.
+  rpc DecryptBlob(DecryptBlobRequest) returns (DecryptBlobResponse) {
+    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:decryptBlob"};
+  }
+
+  // Create a new key ring.
+  rpc CreateKeyRing(CreateKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*}/key_rings",
+      body: "key_ring"
+    };
+    option (google.api.method_signature) = "parent,key_ring";
+  }
+
+  // List key rings.
+  rpc ListKeyRings(ListKeyRingsRequest) returns (ListKeyRingsResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/key_rings"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 50
+      },
+      order_by: "create_time desc"
+    };
+  }
+
+  // Get key ring.
+  rpc GetKeyRing(GetKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/key_rings/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // ListKeyRingPublicKeys lists the asymmetric public keys for a given key rings key materials.
+  rpc ListKeyRingPublicKeys(ListKeyRingPublicKeysRequest) returns (ListKeyRingPublicKeysResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/key_rings/*}/public_keys"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 50
+      },
+      order_by: "create_time desc"
+    };
+  }
+
+  // Update key ring.
+  rpc UpdateKeyRing(UpdateKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{key_ring.name=projects/*/key_rings/*}",
+      body: "key_ring"
+    };
+    option (google.api.method_signature) = "key_ring,update_mask";
+  }
+
+  // Delete key ring.
+  rpc DeleteKeyRing(DeleteKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/key_rings/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// SignBlobRequest is the request for the SignBlob method.
+// This request is not embedding any metadata, but simply signs the blob using the key.
+// The key is identified by the resource name.
+// This can be directly used for some custom signing operations like signing a JWT.
+message SignBlobRequest {
+  // Required. The resource name that should be used to sign the blob.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // Algorithm used to sign the blob.
+  blocky.type.crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The blob to sign.
+  bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// SignBlobResponse is the response for the SignBlob method.
+message SignBlobResponse {
+  // The key material that was used to sign the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to sign the blob.
+  // If not specified, the algorithm will be derived from the key.
+  blocky.type.crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The signature of the blob.
+  bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// VerifyBlobRequest is the request for the VerifyBlob method.
+// This request is not embedding any metadata, but simply verifies the blob using the key.
+// The key is identified by the resource name.
+// This can be directly used for some custom signing operations like verifying a JWT.
+message VerifyBlobRequest {
+  // The key material that was used to sign the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm used to sign the blob.
+  blocky.type.crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The blob to verify.
+  bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // The signature of the blob.
+  bytes signature = 4 [(google.api.field_behavior) = REQUIRED];
+}
+
+// VerifyBlobResponse is the response for the VerifyBlob method.
+message VerifyBlobResponse {
+  // Defines if the signature was valid.
+  bool valid = 1;
+}
+
+// SignContentRequest is the request for the Sign method.
+message SignContentRequest {
+  // Required. The resource name that should be used to sign the content.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The content to sign.
+  bytes content = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Algorithm used to sign the content.
+  blocky.type.crypto.SignatureAlgorithm algorithm = 3 [(google.api.field_behavior) = OPTIONAL];
+
+  // Metadata to embed in to signature header.
+  map<string, string> meta = 4 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// VerifySignatureRequest is the request for the Verify method.
+message VerifySignedContentRequest {
+  // The project identifier that the key used to sign belongs to.
+  string project = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Protobuf web signature
+  blocky.type.crypto.SignedContent signed_content = 2;
+}
+
+// VerifySignatureResponse is the response for the Verify method.
+message VerifySignedContentResponse {
+  // Defines if the signed content was valid.
+  bool valid = 1;
+}
+
+// EncryptContentRequest is the request for the EncryptContent method.
+message EncryptContentRequest {
+  // Required. The resource name that should be used to encrypt the content.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The content to encrypt.
+  bytes content = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptContentResponse is the response for the EncryptContent method.
+message EncryptContentResponse {
+  // The key material that was used to encrypt the content.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to encrypt the content.
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The encrypted content.
+  blocky.type.crypto.EncryptedContent encrypted_content = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptContentRequest is the request for the DecryptContent method.
+message DecryptContentRequest {
+  // Required. The resource name that should be used to decrypt the content.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The encrypted content to decrypt.
+  blocky.type.crypto.EncryptedContent encrypted_content = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptContentResponse is the response for the DecryptContent method.
+message DecryptContentResponse {
+  // The key material that was used to decrypt the content.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to decrypt the content.
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The decrypted content.
+  bytes content = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptBlobRequest is the request for the EncryptBlob method.
+message EncryptBlobRequest {
+  // Required. The resource name that should be used to encrypt the blob.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The blob to encrypt.
+  bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// EncryptBlobResponse is the response for the EncryptBlob method.
+message EncryptBlobResponse {
+  // The key material that was used to encrypt the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to encrypt the blob.
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The cipher text of the encrypted blob.
+  bytes cipher_text = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptBlobRequest is the request for the DecryptBlob method.
+message DecryptBlobRequest {
+  // Required. The resource name that should be used to decrypt the blob.
+  // It may either be a:
+  // [kms.blockyapis.com/Key] (in format: `keys/*`)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The cipher text of the encrypted blob.
+  bytes cipher_text = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// DecryptBlobResponse is the response for the DecryptBlob method.
+message DecryptBlobResponse {
+  // The key material that was used to decrypt the blob.
+  string key_material = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The algorithm that was used to decrypt the blob.
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The decrypted blob.
+  bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for KeyManagementService.CreateKey.
+message CreateKeyRequest {
+  // Required. The Key to create.
+  Key key = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for KeyManagementService.GetKey.
+message GetKeyRequest {
+  // Required. The resource name of the Key to get.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+}
+
+// Request message for KeyManagementService.ListKeys.
+message ListKeysRequest {
+  // The maximum number of keys to return. The service may return fewer than
+  // this value. If unspecified, at most 50 keys will be returned. The maximum
+  // value is 1000; values above 1000 will be coerced to 1000.
+  int32 page_size = 1;
+
+  // Optional. A pagination token returned from a previous call to ListKeys
+  // that indicates where this listing should continue from.
+  string page_token = 2;
+}
+
+// Response message for KeyManagementService.ListKeys.
+message ListKeysResponse {
+  // The list of Keys.
+  repeated Key keys = 1;
+
+  // A token to retrieve next page of results. Pass this value in
+  // ListKeysRequest.page_token to retrieve the next page of results.
+  string next_page_token = 2;
+
+  // The total number of Keys that matched the query.
+  int32 total_size = 3;
+}
+
+// Request message for KeyManagementService.UpdateKey.
+message UpdateKeyRequest {
+  // Required. Key resource name to update.
+  // Format: `keys/*`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+
+  // Required. The Key to update.
+  Key key = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The update mask applies to the resource. For the `FieldMask`
+  // definition, see
+  // https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask
+  // If not set, all mutable fields will be updated.
+  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for KeyManagementService.DeleteKey.
+message DeleteKeyRequest {
+  // Required. The resource name of the Key to delete.
+  // Format: `keys/*`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+}
+
+// Request message for KeyManagementService.RotateKey.
+message RotateKeyRequest {
+  // Required. The resource name of the Key to rotate.
+  // Format: `keys/*`
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+}
+
+// Request message for KeyManagementService.GetKeyMaterial.
+message GetKeyMaterialRequest {
+  // Required. The resource name of the Key whose key material to get.
+  // Format: `keys/*/materials/*`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+}
+
+// Request message for KeyManagementService.ListKeyMaterials.
+message ListKeyMaterialsRequest {
+  // Required. The resource name of the Key whose key materials to list.
+  // Format: `keys/*`
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+
+  // The maximum number of key materials to return. The service may return fewer
+  // than this value. If unspecified, at most 50 key materials will be returned.
+  // The maximum value is 1000; values above 1000 will be coerced to 1000.
+  int32 page_size = 2;
+
+  // Optional. A pagination token returned from a previous call to
+  // ListKeyMaterials that indicates where this listing should continue from.
+  string page_token = 3;
+}
+
+// Response message for KeyManagementService.ListKeyMaterials.
+message ListKeyMaterialsResponse {
+  // The list of KeyMaterials.
+  repeated KeyMaterial key_materials = 1;
+
+  // A token to retrieve next page of results. Pass this value in
+  // ListKeyMaterialsRequest.page_token to retrieve the next page of results.
+  string next_page_token = 2;
+}
+
+// Request message for KeyManagementService.GetKeyMaterialContent.
+message GetKeyMaterialContentRequest {
+  // Required. The resource name of the KeyMaterial whose private key material to get.
+  // Format: `keys/*/materials/*`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+}
+
+// Request message for KeyManagementService.GetPublicKeyMaterial.
+message GetPublicKeyMaterialRequest {
+  // Required. The resource name of the KeyMaterial whose public key material to get.
+  // Format: `keys/*/materials/*`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+}
+
+// Request message for KeyManagementService.BatchGetKeyMaterialContents.
+message BatchGetKeyMaterialContentsRequest {
+  // Required. The names of the KeyMaterials to get.
+  // A maximum of 1000 can be obtained in a batch.
+  repeated string names = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+}
+
+// Response message for KeyManagementService.BatchGetKeyMaterialContents.
+message BatchGetKeyMaterialContentsResponse {
+  // The list of KeyMaterialContents.
+  repeated KeyMaterialContent key_material_contents = 1;
+}
+
+// The request message for
+message CreateKeyRingRequest {
+  // Required, resource to create.
+  KeyRing key_ring = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+message ListKeyRingsRequest {
+  // Optional. The maximum number of KeyRings to return in the response. The
+  // server allows a maximum of 300 KeyRings to return. If unspecified, the
+  // server will use 50 as the default, unless its configuration specifies
+  // a smaller default.
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. A pagination token returned from a previous call to
+  // ListKeyRingsRequest that indicates where this listing should continue from.
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response message for ListKeyRings method.
+message ListKeyRingsResponse {
+  // List of key rings matching the request.
+  repeated KeyRing key_rings = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no
+  // more results in the list.
+  string next_page_token = 2;
+
+  // The total number of KeyRings that matched the query.
+  int32 total_size = 3;
+}
+
+// The request message for
+message GetKeyRingRequest {
+  // Required. The resource name of the key ring to retrieve.
+  // Format: 'keyRings/{key_ring}'.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+  ];
+}
+
+// The request message for
+message ListKeyRingPublicKeysRequest {
+  // Optional. The maximum number of public keys to return in the response. The
+  // server allows a maximum of 300 public keys to return. If unspecified, the
+  // server will use 50 as the default, unless its configuration specifies
+  // a smaller default.
+  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. A pagination token returned from a previous call to
+  // ListKeyRingPublicKeysRequest that indicates where this listing should continue from.
+  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response message for
+message ListKeyRingPublicKeysResponse {
+  // List of public keys matching the request.
+  repeated KeyMaterialContent public_keys = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no
+  // more results in the list.
+  string next_page_token = 2;
+}
+
+// The request message for
+message UpdateKeyRingRequest {
+  // Required identifier of the key ring to update.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+  ];
+
+  // Required, resource to update.
+  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The list of fields to update.
+  // If empty, all modifiable fields will be updated.
+  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+message DeleteKeyRingRequest {
+  // Required. The resource name of the key ring to delete.
+  // Format: 'keyRings/{key_ring}'.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+  ];
+}

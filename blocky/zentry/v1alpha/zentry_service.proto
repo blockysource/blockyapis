@@ -1,0 +1,66 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.zentry.v1alpha;
+
+import "blocky/zentry/v1alpha/relation.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/zentry/v1alpha;zentrypb";
+
+// The relation write service
+service RelationsService {
+  // Creates a new zentry relation.
+  rpc CreateRelation(CreateRelationRequest) returns (Relation) {
+    option (google.api.http) = {
+      post: "/v1alpha/relations}"
+      body: "*"
+    };
+  }
+
+  // Creates a batch of zentry relations.
+  rpc BatchCreateRelations(BatchCreateRelationsRequest) returns (BatchCreateRelationsResponse) {
+    option (google.api.http) = {
+      post: "/v1alpha/relations:batchCreate}"
+      body: "*"
+    };
+  }
+
+  // Check
+}
+
+// Request message for `CreateRelation` method.
+message CreateRelationRequest {
+  // Required the relation to be created.
+  Relation relation = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for `BatchCreateRelations` method.
+message BatchCreateRelationsRequest {
+  // Required the relations to be created.
+  repeated Relation relations = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Response message for `BatchCreateRelations` method.
+message BatchCreateRelationsResponse {
+  // The created relations.
+  repeated Relation relations = 1;
+}
+
+//

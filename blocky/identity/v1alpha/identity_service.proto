@@ -1,0 +1,93 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.identity.v1alpha;
+
+import "blocky/identity/v1alpha/user.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/identity/v1alpha;identitypb";
+
+// The identity service implementation.
+service IdentityService {
+  // Registers a new user with the given credentials.
+  rpc RegisterUser(RegisterUserRequest) returns (RegisterUserResponse);
+
+  // Authenticates a user with the given credentials.
+  rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
+}
+
+// Is a request message for the RegisterUser method.
+message RegisterUserRequest {
+  // The credentials used to register the user.
+  // Exactly one of the following fields must be set.
+  oneof credentials {
+    // The credentials based on email and password.
+    EmailPasswordCredential email_password = 1;
+
+    // The third-party identity provider credentials obtained from the client application flow.
+    ThirdPartyIdentityCredential third_party_identity = 2;
+  }
+}
+
+// Is a response message for the RegisterUser method.
+message RegisterUserResponse {
+  // The user that has been registered.
+  User user = 1;
+}
+
+// Is a request message for the AuthenticateUser method.
+message AuthenticateUserRequest {
+  // The credentials used to authenticate the user.
+  // Exactly one of the following fields must be set.
+  oneof credentials {
+    // The credentials based on email and password.
+    EmailPasswordCredential email_password = 1;
+
+    // The third-party identity provider credentials obtained from the client application flow.
+    ThirdPartyIdentityCredential third_party_identity = 2;
+  }
+}
+
+// Is a response message for the AuthenticateUser method.
+message AuthenticateUserResponse {
+  // The user that has been authenticated.
+  User user = 1;
+}
+
+// EmailPasswordCredential represents the email and password credential.
+message EmailPasswordCredential {
+  // The unique email address of the user.
+  string email_address = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // The password of the user.
+  string password = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The third-party identity provider credentials obtained from the client application flow.
+message ThirdPartyIdentityCredential {
+  // The name of the third-party identity provider.
+  // This needs to be a valid resource name.
+  string provider = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "identity.blockyapis.com/IdentityProvider"}
+  ];
+
+  // The token that is used to authenticate the user.
+  string token = 2 [(google.api.field_behavior) = REQUIRED];
+}

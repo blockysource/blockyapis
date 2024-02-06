@@ -1,4 +1,4 @@
-// Copyright 2023 The Blocky Authors
+// Copyright 2024 The Blocky Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,13 +14,14 @@
 
 syntax = "proto3";
 
-package blocky.events.type;
+package blocky.type.event;
 
 import "google/api/field_behavior.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/events/type/eventspb;eventspb";
+option go_package = "github.com/blockysource/go-genproto/blocky/type/event;eventpb";
 
 // Message is a generic event message used for data exchange between services.
 //
@@ -42,4 +43,7 @@ message Message {
 
   // Message payload of the event.
   google.protobuf.Any payload = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // A metadata associated with the message.
+  google.protobuf.Struct metadata = 5 [(google.api.field_behavior) = OPTIONAL];
 }

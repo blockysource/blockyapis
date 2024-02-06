@@ -14,26 +14,29 @@
 
 syntax = "proto3";
 
-package blocky.kms.events;
+package blocky.cloud.iam.admin.v1alpha;
 
-import "blocky/kms/crypto/key_material.proto";
+import "blocky/cloud/iam/admin/v1alpha/relation.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/events;kmseventspb";
+service RelationsService {
 
-// KeyCreated is published when a key is created.
-message KeyCreated {
-  // The resource name of the key.
-  string name = 1;
-
-  // The algorithm type of the key.
-  crypto.KeyAlgorithmType algorithm_type = 2;
 }
 
-// KeyMaterialCreated is a message of an event when a key material is created.
-message KeyMaterialCreated {
-  // The resource name of key material.
-  string name = 1;
 
-  // The algorithm type of the key.
-  crypto.KeyAlgorithmType algorithm_type = 2;
+message RelationOperation {
+
+}
+
+
+// Request message for RelationsService.CreateRelation.
+message CreateRelationRequest {
+  Relation relation = 1;
+}
+
+// Request message for RelationsService.DeleteRelation.
+message DeleteRelationRequest {
+  // Relation to be deleted.
+  Relation relation = 1;
 }

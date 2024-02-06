@@ -1,4 +1,4 @@
-// Copyright 2024 The Blocky Authors
+// Copyright 2023 The Blocky Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
 
 syntax = "proto3";
 
-package blocky.api;
+package blocky.cloud.iam.admin.v1alpha;
 
-option go_package = "github.com/blockysource/go-genproto/blocky/api/annotations;annotationspb";
+// Relation is a model of the permission relation.
+message Relation {
+  // An optional namespace to which this relation belongs.
+  string namespace = 1;
 
-// MessageProperties is used to annotate messages with additional information.
-// This information can be used by generators to generate code that is more
-// suitable for the given message.
-// It also allows to specify some properties that are not part of the
-// protobuf specification.
-message MessageProperties {
-  // States that given message is comparable to other messages of the same type.
-  bool comparable = 1;
+  // The object to which this relation belongs.
+  string object = 2;
+
+  // The subject that a relation is assigned to.
+  string subject = 3;
+
+  // The relation type of the permission.
+  string relation_type = 4;
 }

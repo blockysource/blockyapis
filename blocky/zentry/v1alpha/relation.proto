@@ -1,0 +1,73 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.zentry.v1alpha;
+
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/zentry/v1alpha;zentrypb";
+
+// A relation is a tuple that defines the relation between an object and a
+// subject. It is up to the application to define what the relation means.
+// For example, a relation could be used to define that a user has a certain
+// role on a project, or that a user has a certain permission on a resource.
+// The relation is defined by the `relation` field, and the subject is defined
+// by the `subject` field. The `object` field is the resource name of the object
+// that the relation is defined on.
+message Relation {
+  // The resource name of the relation.
+  // Format: `/relations/{relation}`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "zentry.blockyapis.com/Relation"}
+  ];
+
+  // The resource name of the object that this relation is defined on.
+  string object = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // This is a string that represents the relation between the object and the
+  // subject. It is up to the application to define what the relation means.
+  string relation = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // The subject related by this tuple.
+  // A Subject either represents a concrete subject id or
+  // a `SubjectSet` that expands to more Subjects.
+  oneof subject {
+    // The direct reference to a subject resource name.
+    // This might be a user, a group, or a service account.
+    string subject_name = 4 [(google.api.resource_reference) = {type: "*"}];
+
+    // The set of subjects that have the same relation on the object.
+    SubjectSet set = 5;
+  }
+}
+
+// SubjectSet refers to all subjects who have the same `relation` on an `object`.
+message SubjectSet {
+  // The object related by this subject set.
+  string object = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "*"}
+  ];
+
+  // The relation that all subjects in this set have on the object.
+  string relation = 2 [(google.api.field_behavior) = REQUIRED];
+}

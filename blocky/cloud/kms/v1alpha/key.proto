@@ -1,4 +1,4 @@
-// Copyright 2024 The Blocky Authors
+// Copyright 2023 The Blocky Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-package blocky.kms.v1alpha;
+package blocky.cloud.kms.v1alpha;
 
 import "blocky/type/crypto/algorithm.proto";
 import "blocky/type/crypto/key_material.proto";
@@ -23,7 +23,7 @@ import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/kms/v1alpha;cloudkmspb";
 
 // KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
 enum KeyUse {
@@ -74,10 +74,10 @@ enum KeyOperations {
 message Key {
   // Resource name of the Key.
   // The format of the key resource name:
-  // `keys/*`
+  // `projects/*/keys/*`
   string name = 1 [
     (google.api.field_behavior) = IDENTIFIER,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"}
   ];
 
   // The unique server-generated UUID identifier for the key.
@@ -89,7 +89,7 @@ message Key {
 
   // The aliases that can be used to refer to the key.
   // The full path of the alias is:
-  // 'keys/{key_alias}'
+  // 'projects/{project}/keys/{key_alias}'
   repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The key algorithm type
@@ -134,6 +134,36 @@ message Key {
   bool destroy_protection = 16 [(google.api.field_behavior) = OPTIONAL];
 }
 
+// Is a cryptographic key material directly used for the cryptographic operations.
+// The parameters of the material are derived from the key.
+message KeyMaterial {
+  // The resource name of the key material.
+  // The format of the key material resource name:
+  // `projects/*/keys/*/materials/*`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // Is a unique key material identifier assigned by the server.
+  // I.e.: 'projects/{project}/keys/{key}/materials/{material}'
+  string material_id = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The creation time of the key material.
+  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Related key resource name.
+  // I.e.: 'projects/{project}/keys/{key}'
+  string key = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The resource name of the predecessor key material.
+  // This is set only if the key material was rotated.
+  string predecessor = 5 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.field_behavior) = OUTPUT_ONLY
+  ];
+}
+
 // RSA key parameters.
 message RSAKeyParameters {
   // The size of the RSA key in bits.
@@ -169,39 +199,6 @@ message OctetKeyParameters {
   int32 key_size = 1 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// Is a cryptographic key material directly used for the cryptographic operations.
-// The parameters of the material are derived from the key.
-message KeyMaterial {
-  // The resource name of the key material.
-  // The format of the key material resource name:
-  // `keys/*/materials/*`
-  string name = 1 [
-    (google.api.field_behavior) = IDENTIFIER,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
-  ];
-
-  // Is a unique key material identifier assigned by the server.
-  // I.e.: 'keys/{key}/materials/{material}'
-  string material_id = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The creation time of the key material.
-  google.protobuf.Timestamp create_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // Related key resource name.
-  // I.e.: 'keys/{key}'
-  string key = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The resource name of the predecessor key material.
-  // This is set only if the key material was rotated.
-  string predecessor = 5 [
-    (google.api.field_behavior) = OPTIONAL,
-    (google.api.field_behavior) = OUTPUT_ONLY
-  ];
-
-  // The content of the key material.
-  KeyMaterialContent content = 6 [(google.api.field_behavior) = REQUIRED];
-}
-
 // Describes the content of a key with details, that allows to use it for cryptographic operations.
 // It contains not only cryptographic key metadata, but also the identifiers of the key and its material,
 // which allows to match the content with the key and its material resource.
@@ -227,7 +224,7 @@ message KeyMaterialContent {
     ];
 
 
-    // The algorithm intended for use with the key.
+   // The algorithm intended for use with the key.
     repeated blocky.type.crypto.SignatureAlgorithm signature_algorithms = 4 [(google.api.field_behavior) = REQUIRED];
 
     // The encryption key management algorithms intended for use with the key.
@@ -236,14 +233,14 @@ message KeyMaterialContent {
     // The identifier for the key.
     string key_id = 6 [
       (google.api.field_behavior) = REQUIRED,
-      (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+      (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"},
       json_name = "kid"
     ];
 
     // The identifier of the key material.
     string material_id = 7 [
       (google.api.field_behavior) = REQUIRED,
-      (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"},
+      (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"},
       json_name = "mid"
     ];
   }

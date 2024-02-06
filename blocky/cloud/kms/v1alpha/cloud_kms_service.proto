@@ -14,24 +14,24 @@
 
 syntax = "proto3";
 
-package blocky.kms.v1alpha;
+package blocky.cloud.kms.v1alpha;
 
 import "blocky/api/annotations.proto";
-import "blocky/kms/crypto/algorithm.proto";
-import "blocky/kms/crypto/encrypted_content.proto";
-import "blocky/kms/crypto/signature.proto";
-import "blocky/kms/v1alpha/key.proto";
-import "blocky/kms/v1alpha/key_ring.proto";
+import "blocky/type/crypto/algorithm.proto";
+import "blocky/type/crypto/encrypted_content.proto";
+import "blocky/type/crypto/signature.proto";
+import "blocky/cloud/kms/v1alpha/key.proto";
+import "blocky/cloud/kms/v1alpha/key_ring.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+option go_package = "github.com/blockysource/go-genproto/blocky/cloud/kms/v1alpha;cloudkmspb";
 
 // A service that handles key management and signing, encryption and decryption operations.
-service KmsService {
+service CloudKeyManagementService {
   // CreateKey creates a new cryptographic key.
   // New key is neither active nor used in a set.
   rpc CreateKey(CreateKeyRequest) returns (Key) {
@@ -167,9 +167,8 @@ service KmsService {
     option (google.api.http) = {post: "/v1alpha/{project=projects/*}:verifyBlob"};
   }
 
-
   // SignContent signs the given data with the given key.
-  rpc SignContent(SignContentRequest) returns (crypto.SignedContent) {
+  rpc SignContent(SignContentRequest) returns (blocky.type.crypto.SignedContent) {
     option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:signContent"};
   }
 
@@ -177,7 +176,6 @@ service KmsService {
   rpc VerifySignedContent(VerifySignedContentRequest) returns (VerifySignedContentResponse) {
     option (google.api.http) = {post: "/v1alpha/{project=projects/*}:verifyContent"};
   }
-
 
   // Encrypts the input content with the given key.
   rpc EncryptContent(EncryptContentRequest) returns (EncryptContentResponse) {
@@ -250,7 +248,7 @@ message ListKeysResponse {
 message GetKeyRequest {
   // Required. The resource name of the key to retrieve.
   // Format: `projects/{project_id}/keys/{key_id}`
-  string name = 1 [(google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}];
+  string name = 1 [(google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"}];
 }
 
 // The request message for
@@ -259,7 +257,7 @@ message UpdateKeyRequest {
   // Required identifier of the key to update.
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"}
   ];
 
   // Required, resource to update.
@@ -276,7 +274,7 @@ message DeleteKeyRequest {
   // Required identifier of the key to delete.
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"}
   ];
 }
 
@@ -286,7 +284,7 @@ message RotateKeyRequest {
   // Required identifier of the key to create a material for.
   // Format: 'projects/{project}/keys/{key}'.
   string parent = 1 [
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"},
     (google.api.field_behavior) = REQUIRED
   ];
 }
@@ -297,7 +295,7 @@ message GetKeyMaterialRequest {
   // Required identifier of the key material to get.
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"}
   ];
 }
 
@@ -309,7 +307,7 @@ message ListKeyMaterialsRequest {
   // Format:
   // - 'projects/{project}/keys/{key}'
   string parent = 1 [
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/Key"},
     (google.api.field_behavior) = REQUIRED
   ];
 
@@ -388,7 +386,7 @@ message GetKeyRingRequest {
   // Format: 'projects/{project}/key_rings/{key_ring}'.
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyRing"}
   ];
 }
 
@@ -399,7 +397,7 @@ message ListKeyRingPublicKeysRequest {
   // Format: 'projects/{project}/key_rings/{key_ring}'.
   string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyRing"}
   ];
 
   // Optional. The maximum number of public keys to return in the response. The
@@ -430,7 +428,7 @@ message UpdateKeyRingRequest {
   // Required identifier of the key ring to update.
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyRing"}
   ];
 
   // Required, resource to update.
@@ -448,7 +446,7 @@ message DeleteKeyRingRequest {
   // Format: 'projects/{project}/key_rings/{key_ring}'.
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyRing"}
   ];
 }
 
@@ -459,15 +457,15 @@ message DeleteKeyRingRequest {
 message SignBlobRequest {
   // Required. The resource name that should be used to sign the blob.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  // [cloud.kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [cloud.kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
   ];
 
   // Algorithm used to sign the blob.
-  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The blob to sign.
   bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
@@ -478,12 +476,12 @@ message SignBlobResponse {
   // The key material that was used to sign the blob.
   string key_material = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"}
   ];
 
   // The algorithm that was used to sign the blob.
   // If not specified, the algorithm will be derived from the key.
-  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = OPTIONAL];
+  blocky.type.crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = OPTIONAL];
 
   // The signature of the blob.
   bytes signature = 3 [(google.api.field_behavior) = REQUIRED];
@@ -497,11 +495,11 @@ message VerifyBlobRequest {
   // The key material that was used to sign the blob.
   string key_material = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"}
   ];
 
   // The algorithm used to sign the blob.
-  crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The blob to verify.
   bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
@@ -516,13 +514,12 @@ message VerifyBlobResponse {
   bool valid = 1;
 }
 
-
 // SignContentRequest is the request for the Sign method.
 message SignContentRequest {
   // Required. The resource name that should be used to sign the content.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  // [cloud.kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [cloud.kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
@@ -532,7 +529,7 @@ message SignContentRequest {
   bytes content = 2 [(google.api.field_behavior) = REQUIRED];
 
   // Algorithm used to sign the content.
-  crypto.SignatureAlgorithm algorithm = 3 [(google.api.field_behavior) = OPTIONAL];
+  blocky.type.crypto.SignatureAlgorithm algorithm = 3 [(google.api.field_behavior) = OPTIONAL];
 
   // Metadata to embed in to signature header.
   map<string, string> meta = 4 [(google.api.field_behavior) = OPTIONAL];
@@ -547,7 +544,7 @@ message VerifySignedContentRequest {
   ];
 
   // Protobuf web signature
-  crypto.SignedContent signed_content = 2;
+  blocky.type.crypto.SignedContent signed_content = 2;
 }
 
 // VerifySignatureResponse is the response for the Verify method.
@@ -560,8 +557,8 @@ message VerifySignedContentResponse {
 message EncryptContentRequest {
   // Required. The resource name that should be used to encrypt the content.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  // [cloud.kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [cloud.kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
@@ -576,29 +573,29 @@ message EncryptContentResponse {
   // The key material that was used to encrypt the content.
   string key_material = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"}
   ];
 
   // The algorithm that was used to encrypt the content.
-  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The encrypted content.
-  crypto.EncryptedContent encrypted_content = 3 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.EncryptedContent encrypted_content = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // DecryptContentRequest is the request for the DecryptContent method.
 message DecryptContentRequest {
   // Required. The resource name that should be used to decrypt the content.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  // [cloud.kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [cloud.kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
   ];
 
   // The encrypted content to decrypt.
-  crypto.EncryptedContent encrypted_content = 2 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.EncryptedContent encrypted_content = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 // DecryptContentResponse is the response for the DecryptContent method.
@@ -606,11 +603,11 @@ message DecryptContentResponse {
   // The key material that was used to decrypt the content.
   string key_material = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"}
   ];
 
   // The algorithm that was used to decrypt the content.
-  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The decrypted content.
   bytes content = 3 [(google.api.field_behavior) = REQUIRED];
@@ -620,8 +617,8 @@ message DecryptContentResponse {
 message EncryptBlobRequest {
   // Required. The resource name that should be used to encrypt the blob.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  // [cloud.kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [cloud.kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
@@ -636,11 +633,11 @@ message EncryptBlobResponse {
   // The key material that was used to encrypt the blob.
   string key_material = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"}
   ];
 
   // The algorithm that was used to encrypt the blob.
-  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The cipher text of the encrypted blob.
   bytes cipher_text = 3 [(google.api.field_behavior) = REQUIRED];
@@ -650,8 +647,8 @@ message EncryptBlobResponse {
 message DecryptBlobRequest {
   // Required. The resource name that should be used to decrypt the blob.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
+  // [cloud.kms.blockyapis.com/Key] (in format: `projects/*/keys/*`)
+  // [cloud.kms.blockyapis.com/KeyMaterial] (in format: `projects/*/keys/*/materials/*`)
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
@@ -666,11 +663,11 @@ message DecryptBlobResponse {
   // The key material that was used to decrypt the blob.
   string key_material = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+    (google.api.resource_reference) = {type: "cloud.kms.blockyapis.com/KeyMaterial"}
   ];
 
   // The algorithm that was used to decrypt the blob.
-  crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.EncryptionAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The decrypted blob.
   bytes blob = 3 [(google.api.field_behavior) = REQUIRED];

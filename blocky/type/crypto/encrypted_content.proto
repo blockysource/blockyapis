@@ -1,4 +1,4 @@
-// Copyright 2023 The Blocky Authors
+// Copyright 2024 The Blocky Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,48 +14,54 @@
 
 syntax = "proto3";
 
-package blocky.kms.crypto;
+package blocky.type.crypto;
 
-import "blocky/kms/crypto/algorithm.proto";
+import "blocky/type/crypto/algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/cryptopb;cryptopb";
+option go_package = "github.com/blockysource/go-genproto/blocky/type/crypto;cryptopb";
 
 // EncryptedContent is the content securely encrypted using encryption algorithms.
 message EncryptedContent {
+  enum CompressionAlgorithm {
+    // COMPRESSION_ALGORITHM_UNSPECIFIED is the default value.
+    COMPRESSION_ALGORITHM_UNSPECIFIED = 0;
+
+    // GZIP is the gzip compression algorithm.
+    GZIP = 1;
+
+    // FLATE is the flate compression algorithm.
+    FLATE = 2;
+  }
+
   // Header is the header of the encrypted content.
   message Header {
-    enum CompressionAlgorithm {
-      // COMPRESSION_ALGORITHM_UNSPECIFIED is the default value.
-      COMPRESSION_ALGORITHM_UNSPECIFIED = 0;
+    // The globally-unique identifier of the encrypted content.
+    string uid = 1 [(google.api.field_behavior) = IDENTIFIER];
 
-      // GZIP is the gzip compression algorithm.
-      GZIP = 1;
-
-      // FLATE is the flate compression algorithm.
-      FLATE = 2;
-    }
-
-    // Algorithm is the algorithm used to as the key management algorithm.
-    KeyManagementAlgorithm algorithm = 1 [(google.api.field_behavior) = REQUIRED];
+    // Algorithm used to as the key management algorithm.
+    KeyManagementAlgorithm algorithm = 2 [(google.api.field_behavior) = REQUIRED];
 
     // Encryption algorithm is the algorithm used to encrypt the content.
-    EncryptionAlgorithm encryption_algorithm = 2 [(google.api.field_behavior) = REQUIRED];
+    EncryptionAlgorithm encryption_algorithm = 3 [(google.api.field_behavior) = REQUIRED];
 
     // Key identifier is the identifier of the key used to sign the content.
     // This is not a full resource name, but just a key identifier.
-    string key_id = 3 [(google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}];
-
-    // Key material used to encrypt the content.
-    // This is not a full resource name, but just a key identifier.
-    string material_id = 4 [(google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}];
+    // Possible key material resource references:
+    // - `keys/*/materials/*` - For non-cloud keys
+    // - `projects/*/keys/*/materials/*` - For cloud keys
+    string key_material = 4 [(google.api.resource_reference) = {type: "*"}];
 
     // Compression algorithm is the algorithm used to compress the content.
     CompressionAlgorithm compression_algorithm = 5 [(google.api.field_behavior) = OPTIONAL];
 
+    // The timestamp when the encrypted content was created.
+    google.protobuf.Timestamp issued_at = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
     // Metadata is the metadata of the signature.
-    map<string, string> metadata = 6 [(google.api.field_behavior) = OPTIONAL];
+    map<string, string> metadata = 7 [(google.api.field_behavior) = OPTIONAL];
   }
 
   // Header is the header of the encrypted content.
