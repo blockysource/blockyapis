@@ -464,9 +464,6 @@ message ListKeysResponse {
   // A token to retrieve next page of results. Pass this value in
   // ListKeysRequest.page_token to retrieve the next page of results.
   string next_page_token = 2;
-
-  // The total number of Keys that matched the query.
-  int32 total_size = 3;
 }
 
 // Request message for KeyManagementService.UpdateKey.
