@@ -14,21 +14,21 @@
 
 syntax = "proto3";
 
-package blocky.cloud.kms.v1alpha;
+package blocky.kms.cloud.v1alpha;
 
 import "blocky/api/annotations.proto";
 import "blocky/type/crypto/algorithm.proto";
 import "blocky/type/crypto/encrypted_content.proto";
 import "blocky/type/crypto/signature.proto";
-import "blocky/cloud/kms/v1alpha/key.proto";
-import "blocky/cloud/kms/v1alpha/key_ring.proto";
+import "blocky/kms/cloud/v1alpha/key.proto";
+import "blocky/kms/cloud/v1alpha/key_ring.proto";
 import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/cloud/kms/v1alpha;cloudkmspb";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/cloud/v1alpha;kmscloudpb";
 
 // A service that handles key management and signing, encryption and decryption operations.
 service CloudKeyManagementService {

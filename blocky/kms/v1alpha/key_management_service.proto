@@ -91,17 +91,17 @@ service KeyManagementService {
     };
   }
 
-  // Gets the private key material content.
-  rpc GetKeyMaterialContent(GetKeyMaterialContentRequest) returns (KeyMaterialContent) {
-    option (google.api.http) = {get: "/v1alpha/{name=keys/*/materials/*}/private"};
-    option (google.api.method_signature) = "name";
-  }
-
-  // Gets a batch of private key material contents.
-  rpc BatchGetKeyMaterialContents(BatchGetKeyMaterialContentsRequest) returns (BatchGetKeyMaterialContentsResponse) {
-    option (google.api.http) = {post: "/v1alpha/{parent=keys/*}/materials:batchGet"};
-    option (google.api.method_signature) = "parent";
-  }
+  //  // Gets the private key material content.
+  //  rpc GetKeyMaterialContent(GetKeyMaterialContentRequest) returns (KeyMaterialContent) {
+  //    option (google.api.http) = {get: "/v1alpha/{name=keys/*/materials/*}/private"};
+  //    option (google.api.method_signature) = "name";
+  //  }
+  //
+  //  // Gets a batch of private key material contents.
+  //  rpc BatchGetKeyMaterialContents(BatchGetKeyMaterialContentsRequest) returns (BatchGetKeyMaterialContentsResponse) {
+  //    option (google.api.http) = {post: "/v1alpha/{parent=keys/*}/materials:batchGet"};
+  //    option (google.api.method_signature) = "parent";
+  //  }
 
   // SignBlob signs the given data with the given key.
   // The client is responsible for either hard-coding the pair of key and algorithm or
@@ -663,6 +663,7 @@ message UpdateKeyRingRequest {
 
 // The request message for
 message DeleteKeyRingRequest {
+
   // Required. The resource name of the key ring to delete.
   // Format: 'keyRings/{key_ring}'.
   string name = 1 [

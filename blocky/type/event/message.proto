@@ -44,6 +44,10 @@ message Message {
   // Message payload of the event.
   google.protobuf.Any payload = 4 [(google.api.field_behavior) = REQUIRED];
 
+  // An optional project resource name that states to which project this message applies.
+  // For the top level messages this value is not set.
+  string project = 5 [(google.api.field_behavior) = OPTIONAL];
+
   // A metadata associated with the message.
-  google.protobuf.Struct metadata = 5 [(google.api.field_behavior) = OPTIONAL];
+  google.protobuf.Struct metadata = 6 [(google.api.field_behavior) = OPTIONAL];
 }

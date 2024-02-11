@@ -171,3 +171,54 @@ enum EncryptionAlgorithm {
   // Defines AES_256_GCM authenticated encryption algorithm.
   A256GCM = 6;
 }
+
+// KeyAlgorithmParameters represents the parameters for a key algorithm.
+// The parameters are specific to the key algorithm type.
+message KeyAlgorithmParameters {
+  // The parameters of the key algorithm.
+  oneof parameters {
+    // Parameters of the RSA key algorithm.
+    RSAKeyParameters rsa_key_parameters = 1;
+    // Parameters of the Elliptic curve key algorithm.
+    EllipticCurveKeyParameters elliptic_curve_key_parameters = 2;
+    // Parameters of the Edwards curve key algorithm. (OKP)
+    OkpKeyParameters okp_key_parameters = 3;
+    // Parameters of the HMAC key algorithm.
+    OctetKeyParameters octet_key_parameters = 4;
+  }
+}
+
+// RSA key parameters.
+message RSAKeyParameters {
+  // The size of the RSA key in bits.
+  // If not provided by default the key size will be 2048 bits.
+  RSAKeySize key_size = 1 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}
+
+// Elliptic curve based key parameters.
+message EllipticCurveKeyParameters {
+  // The curve used for the ECDSA key.
+  // If not provided by default the curve will be P256.
+  EllipticCurve curve = 1 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}
+
+// Edwards curve based key parameters. (OKP)
+message OkpKeyParameters {
+  // The curve used for the OKP key.
+  // If not provided by default the curve will be ED25519.
+  OKPCurve curve = 1 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}
+
+// HMAC key parameters.
+message OctetKeyParameters {
+  // The size of the HMAC key in bits.
+  // The key size must be at least as long as the hash output length.
+  // I.e.: for SHA256 the key size must be at least 256 bits (32 bytes).
+  // If not provided the key size will be equal to the hash output length.
+  // The maximum key size is 1024 bits (128 bytes).
+  // If the key is not multiple of 8 bits, it will be padded with zeros to the
+  // nearest multiple of 8 bits.
+  // I.e. if the key size is 17 bytes, it will be padded to 24 bytes.
+  // If the key size is not provided, the default (256 bits) will be used.
+  int32 key_size = 1 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}

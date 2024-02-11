@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-package blocky.kms.v1alpha;
+package blocky.kms.event.v1;
 
 import "blocky/type/crypto/algorithm.proto";
 import "blocky/type/crypto/key_material.proto";
@@ -23,58 +23,14 @@ import "google/api/resource.proto";
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
-
-// KeyUse is an algorithm used to generate and verify JSON Web Keys (JWK) as defined in RFC 7518.
-enum KeyUse {
-  // Unspecified key use.
-  KEY_USE_UNSPECIFIED = 0;
-
-  // Indicates that the key is used for signing.
-  SIGN_VERIFY = 1;
-
-  // Indicates that the key is used for encryption.
-  ENCRYPT_DECRYPT = 2;
-
-  // Indicates that the key is used for both signing and encryption.
-  SIGN_ENCRYPT_DECRYPT = 3;
-}
-
-// The operations that the key can be used for.
-enum KeyOperations {
-  // Default value. This value is unused.
-  KEY_OPERATIONS_UNSPECIFIED = 0;
-
-  // The key can be used for signing operations.
-  SIGN = 1;
-
-  // The key can be used for verifying operations.
-  VERIFY = 2;
-
-  // The key can be used for encrypting operations.
-  ENCRYPT = 3;
-
-  // The key can be used for decrypting operations.
-  DECRYPT = 4;
-
-  // The key can be used for wrapping operations.
-  WRAP = 5;
-
-  // The key can be used for unwrapping operations.
-  UNWRAP = 6;
-
-  // The key can be used for deriving operations.
-  DERIVE_KEY = 7;
-
-  // The key can be used for deriving operations.
-  DERIVE_BITS = 8;
-}
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/event/v1;kmseventpb";
 
 // Key represents a cryptographic key.
 message Key {
   // Resource name of the Key.
   // The format of the key resource name:
-  // `keys/*`
+  // `keys{key}`
+  // `projects/{project}/keys/{key}`
   string name = 1 [
     (google.api.field_behavior) = IDENTIFIER,
     (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
@@ -136,7 +92,8 @@ message Key {
 message KeyMaterial {
   // The resource name of the key material.
   // The format of the key material resource name:
-  // `keys/*/materials/*`
+  // `keys/{key}/materials/{material}`
+  // `projects/{project}/keys/{key}/materials/{material}`
   string name = 1 [
     (google.api.field_behavior) = IDENTIFIER,
     (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
@@ -149,68 +106,39 @@ message KeyMaterial {
   // This is set only if the key material was rotated.
   string predecessor = 3 [
     (google.api.field_behavior) = OPTIONAL,
-    (google.api.field_behavior) = OUTPUT_ONLY,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+    (google.api.field_behavior) = OUTPUT_ONLY
   ];
 
-  // Public key material content.
-  blocky.type.crypto.KeyMaterial public_key = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  // The public content of the key material.
+  blocky.type.crypto.KeyMaterial public_key = 4 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Describes the content of a key with details, that allows to use it for cryptographic operations.
-// It contains not only cryptographic key metadata, but also the identifiers of the key and its material,
-// which allows to match the content with the key and its material resource.
-message KeyMaterialContent {
-  // A header of the cryptography key. It contains necessary information to identify the key.
-  message Header {
-    // It identifies the cryptographic algorithm family used with the key.
-    blocky.type.crypto.KeyAlgorithmType key_algorithm_type = 1 [
-      (google.api.field_behavior) = REQUIRED,
-      json_name = "kty"
-    ];
+// An event message that is published when a key is created.
+message KeyCreated {
+  // The key that was created.
+  Key key = 1 [(google.api.field_behavior) = REQUIRED];
+}
 
-    // Intended use of the key.
-    KeyUse key_use = 2 [
-      (google.api.field_behavior) = REQUIRED,
-      json_name = "use"
-    ];
+// An event message that is published when a key is updated.
+message KeyUpdated {
+  // The key that was updated.
+  Key key = 1 [(google.api.field_behavior) = REQUIRED];
+}
 
-    // The key can be used for the operations specified in this field.
-    repeated KeyOperations key_ops = 3 [
-      (google.api.field_behavior) = REQUIRED,
-      json_name = "key_ops"
-    ];
-
-    // The algorithm intended for use with the key.
-    repeated blocky.type.crypto.SignatureAlgorithm signature_algorithms = 4 [(google.api.field_behavior) = REQUIRED];
-
-    // The encryption key management algorithms intended for use with the key.
-    repeated blocky.type.crypto.KeyManagementAlgorithm key_management_algorithms = 5 [(google.api.field_behavior) = REQUIRED];
-
-    // The identifier for the key.
-    string key_id = 6 [
-      (google.api.field_behavior) = REQUIRED,
-      (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
-      json_name = "kid"
-    ];
-
-    // The identifier of the key material.
-    string material_id = 7 [
-      (google.api.field_behavior) = REQUIRED,
-      (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"},
-      json_name = "mid"
-    ];
-  }
-
-  // Header of the crypto key.
-  Header header = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "header"
+// An event message that is published when a key is deleted.
+message KeyDeleted {
+  // The name of the key resource that is deleted.
+  // The format of the key resource name:
+  // `keys/{key}`
+  // `projects/{project}/keys/{key}`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
   ];
+}
 
-  // The key material.
-  blocky.type.crypto.KeyMaterial material = 2 [
-    (google.api.field_behavior) = REQUIRED,
-    json_name = "material"
-  ];
+// An event message that is published when a key material is created.
+message KeyMaterialCreated {
+  // The key material that was created.
+  KeyMaterial key_material = 1 [(google.api.field_behavior) = REQUIRED];
 }
