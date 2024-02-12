@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package blocky.identity.v1alpha;
 
-import "blocky/identity/v1alpha/user.proto";
+import "blocky/identity/v1alpha/identity.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/timestamp.proto";
@@ -30,6 +30,9 @@ service IdentityService {
 
   // Authenticates a user with the given credentials.
   rpc AuthenticateUser(AuthenticateUserRequest) returns (AuthenticateUserResponse);
+
+  // Lists identity providers with the configurations.
+  rpc ListIdentityProviders(ListIdentityProvidersRequest) returns (ListIdentityProvidersResponse);
 }
 
 // Is a request message for the RegisterUser method.
@@ -90,4 +93,27 @@ message ThirdPartyIdentityCredential {
 
   // The token that is used to authenticate the user.
   string token = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ListIdentityProvidersRequest is a request message for the ListIdentityProviders method.
+message ListIdentityProvidersRequest {
+  // An optional parent resource name of the identity provider.
+  // I.e.:
+  // - `projects/{project}
+  string parent = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // The maximum number of items to return.
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The next page token.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// ListIdentityProvidersResponse is a response message for the ListIdentityProviders method.
+message ListIdentityProvidersResponse {
+  // The list of identity providers.
+  repeated IdentityProvider identity_providers = 1;
+
+  // The next page token.
+  string next_page_token = 2;
 }

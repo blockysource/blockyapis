@@ -20,7 +20,7 @@ import "blocky/identity/admin/v1alpha/identity.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/identity/admin/v1alpha;identityadminpb";
 
@@ -33,10 +33,84 @@ service IdentityAdminService {
       body: "user"
     };
   }
+
+  // Gets a user by ID.
+  rpc GetUser(GetUserRequest) returns (User) {
+    option (google.api.http) = {get: "/v1alpha/users/{user_id}"};
+  }
+
+  // Lists users
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse) {
+    option (google.api.http) = {get: "/v1alpha/users"};
+  }
+
+  // Updates a user
+  rpc UpdateUser(UpdateUserRequest) returns (User) {
+    option (google.api.http) = {
+      patch: "/v1alpha/users/{user_id}"
+      body: "user"
+    };
+  }
+
+  // Deletes a user by ID.
+  rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {delete: "/v1alpha/users/{user_id}"};
+  }
 }
 
 // Request message for `CreateUser` method.
 message CreateUserRequest {
   // The user to create.
   User user = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for `GetUser` method.
+message GetUserRequest {
+  // The ID of the user to retrieve.
+  string user_id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for `ListUsers` method.
+message ListUsersRequest {
+  // The parent resource name.
+  // I.e.:
+  // - projects/{project_id}
+  // If undefined takes the users with undefined parent.
+  string parent = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // The page size
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The page token
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Response message for `ListUsers` method.
+message ListUsersResponse {
+  // The list of users.
+  repeated User users = 1;
+
+  // A token that can be used to
+  // retrieve the next page of results.
+  string next_page_token = 2;
+}
+
+// Request message for `UpdateUser` method.
+message UpdateUserRequest {
+  // The user resource name to update.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "identity.blockysource.com/User"}
+  ];
+  // The user to update.
+  User user = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for `DeleteUser` method.
+message DeleteUserRequest {
+  // The resource name to delete.
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "identity.blockysource.com/User"}
+  ];
 }

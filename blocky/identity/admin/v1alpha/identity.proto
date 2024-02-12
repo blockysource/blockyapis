@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package blocky.identity.admin.v1alpha;
 
-import "blocky/identity/v1alpha/user.proto";
+import "blocky/identity/v1alpha/identity.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/struct.proto";
@@ -96,5 +96,8 @@ message IdentityProvider {
   string display_name = 2 [(google.api.field_behavior) = REQUIRED];
 
   // The configuration of the identity provider.
-  google.protobuf.Struct config = 4 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.Struct config = 3 [(google.api.field_behavior) = REQUIRED];
+
+  // An optional icon url for the identity provider.
+  string icon_url = 4 [(google.api.field_behavior) = OPTIONAL];
 }

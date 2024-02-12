@@ -56,3 +56,13 @@ message User {
   // The avatar URL of the user.
   string avatar_url = 6 [(google.api.field_behavior) = OPTIONAL];
 }
+
+message IdentityProvider {
+  option (google.api.resource) = {
+    type: "identity.blockyapis.com/IdentityProvider"
+    pattern: "identity_providers/{identity_provider}"
+    name_field: "name"
+  };
+
+  // The resource name of the IdentityProvider.
+}
