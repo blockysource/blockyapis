@@ -57,12 +57,27 @@ message User {
   string avatar_url = 6 [(google.api.field_behavior) = OPTIONAL];
 }
 
-message IdentityProvider {
+// OIDCProvider describes a
+message OIDCProvider {
   option (google.api.resource) = {
-    type: "identity.blockyapis.com/IdentityProvider"
-    pattern: "identity_providers/{identity_provider}"
+    type: "identity.blockyapis.com/OIDCProvider"
+    pattern: "oidcProviders/{oidc_provider}"
     name_field: "name"
   };
 
   // The resource name of the IdentityProvider.
+  // Format: `oidcProviders/{oidc_provider}`
+  string name = 1 [
+    (google.api.resource_reference) = {type: "identity.blockyapis.com/OIDCProvider"},
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // The time when the external identity provider was created.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The time when the external identity provider was last updated.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the identity provider.
+  string display_name = 4 [(google.api.field_behavior) = REQUIRED];
 }

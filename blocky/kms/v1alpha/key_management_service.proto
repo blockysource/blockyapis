@@ -33,14 +33,7 @@ option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsp
 
 // A KeyManagementService manages the lifecycle of cryptographic keys
 service KeyManagementService {
-  rpc CreateKey(CreateKeyRequest) returns (Key) {
-    option (google.api.http) = {
-      post: "/v1alpha/keys"
-      body: "*"
-    };
-    option (google.api.method_signature) = "key";
-  }
-
+  // Gets a key from the service.
   rpc GetKey(GetKeyRequest) returns (Key) {
     option (google.api.http) = {get: "/v1alpha/{name=keys/*}"};
     option (google.api.method_signature) = "name";
@@ -49,27 +42,6 @@ service KeyManagementService {
   // Lists Keys.
   rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
     option (google.api.http) = {get: "/v1alpha/keys"};
-  }
-
-  // Updates the metadata and/or key material of a Key.
-  rpc UpdateKey(UpdateKeyRequest) returns (Key) {
-    option (google.api.http) = {
-      patch: "/v1alpha/{key.name=keys/*}"
-      body: "*"
-    };
-    option (google.api.method_signature) = "key";
-  }
-
-  // Deletes a Key.
-  rpc DeleteKey(DeleteKeyRequest) returns (Key) {
-    option (google.api.http) = {delete: "/v1alpha/{name=keys/*}"};
-    option (google.api.method_signature) = "name";
-  }
-
-  // Rotates the key material of a Key.
-  rpc RotateKey(RotateKeyRequest) returns (Key) {
-    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:rotate"};
-    option (google.api.method_signature) = "name";
   }
 
   // Gets the key material of a Key.
@@ -149,28 +121,6 @@ service KeyManagementService {
     option (google.api.http) = {post: "/v1alpha/{name=keys/*}:decryptBlob"};
   }
 
-  // Create a new key ring.
-  rpc CreateKeyRing(CreateKeyRingRequest) returns (KeyRing) {
-    option (google.api.http) = {
-      post: "/v1alpha/{parent=projects/*}/key_rings",
-      body: "key_ring"
-    };
-    option (google.api.method_signature) = "parent,key_ring";
-  }
-
-  // List key rings.
-  rpc ListKeyRings(ListKeyRingsRequest) returns (ListKeyRingsResponse) {
-    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/key_rings"};
-    option (google.api.method_signature) = "parent";
-    option (blocky.api.query_params) = {
-      pagination: {
-        max_size: 100,
-        default_size: 50
-      },
-      order_by: "create_time desc"
-    };
-  }
-
   // Get key ring.
   rpc GetKeyRing(GetKeyRingRequest) returns (KeyRing) {
     option (google.api.http) = {get: "/v1alpha/{name=projects/*/key_rings/*}"};
@@ -188,21 +138,6 @@ service KeyManagementService {
       },
       order_by: "create_time desc"
     };
-  }
-
-  // Update key ring.
-  rpc UpdateKeyRing(UpdateKeyRingRequest) returns (KeyRing) {
-    option (google.api.http) = {
-      patch: "/v1alpha/{key_ring.name=projects/*/key_rings/*}",
-      body: "key_ring"
-    };
-    option (google.api.method_signature) = "key_ring,update_mask";
-  }
-
-  // Delete key ring.
-  rpc DeleteKeyRing(DeleteKeyRingRequest) returns (KeyRing) {
-    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/key_rings/*}"};
-    option (google.api.method_signature) = "name";
   }
 }
 
@@ -429,12 +364,6 @@ message DecryptBlobResponse {
   bytes blob = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
-// Request message for KeyManagementService.CreateKey.
-message CreateKeyRequest {
-  // Required. The Key to create.
-  Key key = 1 [(google.api.field_behavior) = REQUIRED];
-}
-
 // Request message for KeyManagementService.GetKey.
 message GetKeyRequest {
   // Required. The resource name of the Key to get.
@@ -466,44 +395,7 @@ message ListKeysResponse {
   string next_page_token = 2;
 }
 
-// Request message for KeyManagementService.UpdateKey.
-message UpdateKeyRequest {
-  // Required. Key resource name to update.
-  // Format: `keys/*`
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
-  ];
 
-  // Required. The Key to update.
-  Key key = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // Required. The update mask applies to the resource. For the `FieldMask`
-  // definition, see
-  // https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask
-  // If not set, all mutable fields will be updated.
-  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-// Request message for KeyManagementService.DeleteKey.
-message DeleteKeyRequest {
-  // Required. The resource name of the Key to delete.
-  // Format: `keys/*`
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
-  ];
-}
-
-// Request message for KeyManagementService.RotateKey.
-message RotateKeyRequest {
-  // Required. The resource name of the Key to rotate.
-  // Format: `keys/*`
-  string parent = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
-  ];
-}
 
 // Request message for KeyManagementService.GetKeyMaterial.
 message GetKeyMaterialRequest {
@@ -587,32 +479,6 @@ message CreateKeyRingRequest {
 }
 
 // The request message for
-message ListKeyRingsRequest {
-  // Optional. The maximum number of KeyRings to return in the response. The
-  // server allows a maximum of 300 KeyRings to return. If unspecified, the
-  // server will use 50 as the default, unless its configuration specifies
-  // a smaller default.
-  int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
-
-  // Optional. A pagination token returned from a previous call to
-  // ListKeyRingsRequest that indicates where this listing should continue from.
-  string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
-}
-
-// The response message for ListKeyRings method.
-message ListKeyRingsResponse {
-  // List of key rings matching the request.
-  repeated KeyRing key_rings = 1;
-
-  // Token to retrieve the next page of results, or empty if there are no
-  // more results in the list.
-  string next_page_token = 2;
-
-  // The total number of KeyRings that matched the query.
-  int32 total_size = 3;
-}
-
-// The request message for
 message GetKeyRingRequest {
   // Required. The resource name of the key ring to retrieve.
   // Format: 'keyRings/{key_ring}'.
@@ -643,31 +509,4 @@ message ListKeyRingPublicKeysResponse {
   // Token to retrieve the next page of results, or empty if there are no
   // more results in the list.
   string next_page_token = 2;
-}
-
-// The request message for
-message UpdateKeyRingRequest {
-  // Required identifier of the key ring to update.
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
-  ];
-
-  // Required, resource to update.
-  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // The list of fields to update.
-  // If empty, all modifiable fields will be updated.
-  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
-}
-
-// The request message for
-message DeleteKeyRingRequest {
-
-  // Required. The resource name of the key ring to delete.
-  // Format: 'keyRings/{key_ring}'.
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
-  ];
 }

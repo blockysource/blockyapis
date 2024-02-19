@@ -17,6 +17,7 @@ syntax = "proto3";
 package blocky.identity.admin.v1alpha;
 
 import "blocky/identity/v1alpha/identity.proto";
+import "blocky/type/crypto/algorithm.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/struct.proto";
@@ -57,7 +58,7 @@ message User {
   EmailPasswordCredentials email_password_credentials = 9 [(google.api.field_behavior) = OPTIONAL];
 
   // The third-party identity provider credentials obtained from the client application flow.
-  repeated ThirdPartyIdentityCredential third_party_identity_credentials = 10 [(google.api.field_behavior) = FIELD_BEHAVIOR_UNSPECIFIED];
+  repeated OIDCUserCredentials oidc_credentials = 10 [(google.api.field_behavior) = UNORDERED_LIST];
 }
 
 // EmailPasswordCredentials represents the email and password of the user used for authentication.
@@ -69,35 +70,16 @@ message EmailPasswordCredentials {
   string password = 2 [(google.api.field_behavior) = INPUT_ONLY];
 }
 
-// The third-party identity provider credentials obtained from the client application flow.
-message ThirdPartyIdentityCredential {
-  // The name of the third-party identity provider.
+// An external identity provider credentials obtained from the client application flow.
+message OIDCUserCredentials {
+  // The name of the external identity provider.
   // This needs to be a valid resource name.
   string provider = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "identity.blockyapis.com/IdentityProvider"}
+    (google.api.resource_reference) = {type: "identity.blockyapis.com/OIDCProvider"}
   ];
 
-  // The third-party unique identifier of the user.
+  // The external unique identifier of the user.
   string provider_user_id = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// IdentityProvider represents a third-party identity provider that can be used to authenticate users.
-message IdentityProvider {
-  option (google.api.resource) = {
-    type: "identity.blockyapis.com/IdentityProvider",
-    pattern: "identityProviders/{identity_provider}"
-  };
-
-  // The identity provider resource name in the format `identityProviders/{identity_provider}`.
-  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
-
-  // The display name of the identity provider.
-  string display_name = 2 [(google.api.field_behavior) = REQUIRED];
-
-  // The configuration of the identity provider.
-  google.protobuf.Struct config = 3 [(google.api.field_behavior) = REQUIRED];
-
-  // An optional icon url for the identity provider.
-  string icon_url = 4 [(google.api.field_behavior) = OPTIONAL];
-}

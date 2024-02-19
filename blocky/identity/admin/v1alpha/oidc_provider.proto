@@ -1,0 +1,200 @@
+// Copyright 2023 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.identity.admin.v1alpha;
+
+import "blocky/identity/v1alpha/identity.proto";
+import "blocky/type/crypto/algorithm.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/identity/admin/v1alpha;identityadminpb";
+
+// OIDCProvider represents a third-party identity provider that can be used to authenticate users.
+message OIDCProvider {
+  option (google.api.resource) = {
+    type: "identity.blockyapis.com/OIDCProvider",
+    pattern: "oidcProviders/{oidc_provider}"
+  };
+
+  // The identity provider resource name in the format:
+  // - 'projects/{project}/oidcProviders/{oidc_provider}
+  // - 'oidcProviders/{oidc_provider}
+  string name = 1 [(google.api.field_behavior) = IDENTIFIER];
+
+  // The time when the external identity provider was created.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The time when the external identity provider was last updated.
+  google.protobuf.Timestamp update_time = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the identity provider.
+  string display_name = 4 [(google.api.field_behavior) = REQUIRED];
+
+  // The type of the identity provider.
+  OIDCProviderType provider_type = 5 [(google.api.field_behavior) = REQUIRED];
+
+  // The client credentials for the identity provider.
+  // This field is input only, and is not available on
+  OIDCProviderClientCredentials client_credentials = 6 [
+    (google.api.field_behavior) = INPUT_ONLY,
+    (google.api.field_behavior) = REQUIRED
+  ];
+
+  // The configuration of the identity provider.
+  OIDCProviderConfig config = 7 [(google.api.field_behavior) = REQUIRED];
+}
+
+// OIDCProviderClientCredentials contains input only oidc provider client credentials.
+message OIDCProviderClientCredentials {
+  // The client id of the oidc provider.
+  string client_id = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+
+  // The client secret of the oidc provider.
+  string client_secret = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+}
+
+// OIDCProviderConfig is the configuration of the Open ID Connect provider.
+message OIDCProviderConfig {
+  // IssuerURL is the identity of the provider, and the string it uses to sign
+  // ID tokens with. For example "https://accounts.google.com". This value MUST
+  // match ID tokens exactly.
+  // This field is required, and if this is the only field provided, all other
+  // configurations are going to be taken from the well-known openid configuration
+  // endpoint (issuers_url + /.well-known/openid-configuration)
+  string issuer_url = 1 [(google.api.field_behavior) = REQUIRED];
+  // AuthURL is the endpoint used by the provider to support the OAuth 2.0
+  // authorization endpoint.
+  string auth_url = 2 [(google.api.field_behavior) = OPTIONAL];
+  // TokenURL is the endpoint used by the provider to support the OAuth 2.0
+  // token endpoint.
+  string token_url = 3 [(google.api.field_behavior) = OPTIONAL];
+  // DeviceAuthURL is the endpoint used by the provider to support the OAuth 2.0
+  // device authorization endpoint.
+  string device_auth_url = 4 [(google.api.field_behavior) = OPTIONAL];
+  // UserInfoURL is the endpoint used by the provider to support the OpenID
+  // Connect UserInfo flow.
+  //
+  // https://openid.net/specs/openid-connect-core-1_0.html#UserInfo
+  string user_info_url = 5 [(google.api.field_behavior) = OPTIONAL];
+  // JWKSURL is the endpoint used by the provider to advertise public keys to
+  // verify issued ID tokens. This endpoint is polled as new keys are made
+  // available.
+  string jwks_url = 6 [(google.api.field_behavior) = OPTIONAL];
+
+  // Algorithms, if provided, indicate a list of JWT algorithms allowed to sign
+  // ID tokens. If not provided, this defaults to the algorithms advertised by
+  // the JWK endpoint, then the set of algorithms supported by this package.
+  repeated blocky.type.crypto.SignatureAlgorithm algorithms = 7 [(google.api.field_behavior) = OPTIONAL];
+
+  // Scope specifies optional requested permissions.
+  repeated string scope = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // Provider specific configuration
+  oneof provider_specific_config {
+    // Apple specific configuration.
+    OIDCProviderAppleConfig apple_specific_config = 9;
+
+    // Microsoft specific configuration.
+    OIDCProviderMicrosoftConfig microsoft_specific_config = 10;
+
+    // Generic provider specific configuration
+    OIDCProviderGenericConfig generic_specific_config = 11;
+  }
+}
+
+// OIDCProviderAppleConfig provides Apple specific configuration for OIDC provider.
+message OIDCProviderAppleConfig {
+  // The Apple Developer Team Identifier.
+  // It is obtained from the Apple Developer website and is used in conjunction with `private_key`
+  // and `private_key_id` to generate the `client_secret`.
+  string team_id = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // The Apple Private Key Identifier.
+  string private_key_id = 2 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+
+  // The Apple Private Key.
+  string private_key = 3 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = INPUT_ONLY
+  ];
+}
+
+//OIDCProviderMicrosoftConfig provides Microsoft specific configuration for OIDC provider.
+message OIDCProviderMicrosoftConfig {
+  enum SubjectSource {
+    SUBJECT_SOURCE_UNSPECIFIED = 0;
+    SUBJECT_SOURCE_USERINFO = 1;
+    SUBJECT_SOURCE_ME = 2;
+  }
+  // Tenant is the Azure AD Tenant to use for authentication, and must be set when `provider` is set to `microsoft`.
+  // Can be either `common`, `organizations`, `consumers` for a multitenant application or a specific tenant like
+  // `c43ddb2b-47ea-4fd9-a758-7916372beb0c` or `contoso.onmicrosoft.com`.
+  string tenant = 1 [(google.api.field_behavior) = REQUIRED];
+
+  // SubjectSource is a flag which controls from which endpoint the subject identifier is taken by microsoft provider.
+  // Can be either `userinfo` or `me`.
+  // If the value is `uerinfo` then the subject identifier is taken from sub field of uderifo standard endpoint response.
+  // If the value is `me` then the `id` field of https://graph.microsoft.com/v1.0/me response is taken as subject.
+  // The default is `userinfo`.
+  SubjectSource subject_source = 2 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+}
+
+// OIDCProviderGenericConfig provides the configuration for Generic OIDC Provider.
+message OIDCProviderGenericConfig {
+  enum ClaimsSource {
+    CLAIMS_SOURCE_UNSPECIFIED = 0;
+    CLAIMS_SOURCE_USERINFO = 1;
+    CLAIMS_SOURCE_ID_TOKEN = 2;
+  }
+
+  // An optional Generic OIDC Provider claims source.
+  // By default this value takes the CLAIMS_SOURCE_USERINFO value.
+  ClaimsSource claims_source = 1 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// OIDCProviderType is the enumerated type of the supported OIDC providers.
+enum OIDCProviderType {
+  OIDC_PROVIDER_TYPE_UNSPECIFIED = 0;
+  OIDC_PROVIDER_TYPE_GOOGLE = 1;
+  OIDC_PROVIDER_TYPE_GITHUB = 2;
+  OIDC_PROVIDER_TYPE_GITHUB_APP = 3;
+  OIDC_PROVIDER_TYPE_GITLAB = 4;
+  OIDC_PROVIDER_TYPE_MICROSOFT = 5;
+  OIDC_PROVIDER_TYPE_DISCORD = 6;
+  OIDC_PROVIDER_TYPE_SLACK = 7;
+  OIDC_PROVIDER_TYPE_FACEBOOK = 8;
+  OIDC_PROVIDER_TYPE_AUTH0 = 9;
+  OIDC_PROVIDER_TYPE_VK = 10;
+  OIDC_PROVIDER_TYPE_YANDEX = 11;
+  OIDC_PROVIDER_TYPE_APPLE = 12;
+  OIDC_PROVIDER_TYPE_SPOTIFY = 13;
+  OIDC_PROVIDER_TYPE_NET_ID = 14;
+  OIDC_PROVIDER_TYPE_DINGTALK = 15;
+  OIDC_PROVIDER_TYPE_LINKEDIN = 16;
+  OIDC_PROVIDER_TYPE_PATREON = 17;
+}

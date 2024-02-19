@@ -19,6 +19,7 @@ package blocky.identity.v1alpha;
 import "blocky/identity/v1alpha/identity.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/identity/v1alpha;identitypb";
@@ -33,6 +34,15 @@ service IdentityService {
 
   // Lists identity providers with the configurations.
   rpc ListIdentityProviders(ListIdentityProvidersRequest) returns (ListIdentityProvidersResponse);
+
+  // Generates a one-time random token that can be used to identify and authenticate a user
+  // in specific scenarios like resetting users password.
+  // It is important to NOT return this token directly to the user, but rather use it to send over
+  // some secure channel where the user authentication is expected
+  rpc GenerateResetPasswordToken(GenerateResetPasswordTokenRequest) returns (GenerateResetPasswordTokenResponse);
+
+  // Resets a user's password.
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse);
 }
 
 // Is a request message for the RegisterUser method.
@@ -43,8 +53,8 @@ message RegisterUserRequest {
     // The credentials based on email and password.
     EmailPasswordCredential email_password = 1;
 
-    // The third-party identity provider credentials obtained from the client application flow.
-    ThirdPartyIdentityCredential third_party_identity = 2;
+    // The external identity provider credentials obtained from the client application flow.
+    ExternalIdentityCredential external_identity = 2;
   }
 }
 
@@ -62,8 +72,8 @@ message AuthenticateUserRequest {
     // The credentials based on email and password.
     EmailPasswordCredential email_password = 1;
 
-    // The third-party identity provider credentials obtained from the client application flow.
-    ThirdPartyIdentityCredential third_party_identity = 2;
+    // The external identity provider credentials obtained from the client application flow.
+    ExternalIdentityCredential third_party_identity = 2;
   }
 }
 
@@ -82,13 +92,13 @@ message EmailPasswordCredential {
   string password = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-// The third-party identity provider credentials obtained from the client application flow.
-message ThirdPartyIdentityCredential {
-  // The name of the third-party identity provider.
+// The external identity provider credentials obtained from the client application flow.
+message ExternalIdentityCredential {
+  // The name of the external identity provider.
   // This needs to be a valid resource name.
   string provider = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "identity.blockyapis.com/IdentityProvider"}
+    (google.api.resource_reference) = {type: "identity.blockyapis.com/ExternalIdentityProvider"}
   ];
 
   // The token that is used to authenticate the user.
@@ -112,8 +122,39 @@ message ListIdentityProvidersRequest {
 // ListIdentityProvidersResponse is a response message for the ListIdentityProviders method.
 message ListIdentityProvidersResponse {
   // The list of identity providers.
-  repeated IdentityProvider identity_providers = 1;
+  repeated OIDCProvider identity_providers = 1;
 
   // The next page token.
   string next_page_token = 2;
+}
+
+// GenerateResetPasswordTokenRequest is a request message for the GenerateResetPasswordToken method.
+message GenerateResetPasswordTokenRequest {
+  // An optional parent resource name of the identity provider.
+  // I.e.:
+  // - `projects/{project}
+  string parent = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // The unique email address of the user used for email-password credentials tuple.
+  string email_address = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The token validity duration.
+  google.protobuf.Duration validity_duration = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// GenerateResetPasswordTokenResponse is a response message for the GenerateResetPassworTokent method.
+message GenerateResetPasswordTokenResponse {
+  // The token that is used to authenticate the user.
+  string token = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+
+// ResetPasswordRequest is a request message for the ResetPassword method.
+message ResetPasswordRequest {
+  // An optional parent resource name of the identity provider.
+  // I.e.:
+  // - `projects/{project}
+  string parent = 1 [(google.api.field_behavior) = OPTIONAL];
+
+  // The token used to authenticate the user in resetting the password.
 }

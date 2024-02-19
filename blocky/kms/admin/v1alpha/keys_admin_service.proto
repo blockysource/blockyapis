@@ -1,0 +1,232 @@
+// Copyright 2024 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.kms.admin.v1alpha;
+
+import "blocky/api/annotations.proto";
+import "blocky/type/crypto/algorithm.proto";
+import "blocky/type/crypto/key_material.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+
+// A keys administrative service.
+service KeysAdminService {
+  // Creates a new key.
+  rpc CreateKey(CreateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*}/keys"
+      body: "*"
+    };
+    option (google.api.method_signature) = "key";
+  }
+
+  rpc GetKey(GetKeyRequest) returns (Key) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/keys/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Lists Keys.
+  rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/}keys"};
+  }
+
+  // Updates the metadata and/or key material of a Key.
+  rpc UpdateKey(UpdateKeyRequest) returns (Key) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{key.name=projects/*/keys/*}"
+      body: "*"
+    };
+    option (google.api.method_signature) = "key";
+  }
+
+  // Deletes a Key.
+  rpc DeleteKey(DeleteKeyRequest) returns (Key) {
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/keys/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Rotates the key material of a Key.
+  rpc RotateKey(RotateKeyRequest) returns (Key) {
+    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:rotate"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// Request message for KeysAdminService.CreateKey.
+message CreateKeyRequest {
+  // The parent resource name to which new key ring should belong.
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
+  ];
+  // Required. The Key to create.
+  Key key = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Key represents a cryptographic key.
+message Key {
+  // Resource name of the Key.
+  // The format of the key resource name:
+  // `keys/*`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+
+  // The unique server-generated UUID identifier for the key.
+  // It could be used as the key identifier in its resource name.
+  string uid = 2 [
+    (google.api.field_behavior) = OUTPUT_ONLY,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // The aliases that can be used to refer to the key.
+  // The full path of the alias is:
+  // 'keys/{key_alias}'
+  repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The key algorithm type
+  blocky.type.crypto.KeyAlgorithmType algorithm_type = 4 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // The parameters used to generate the key material.
+  blocky.type.crypto.KeyAlgorithmParameters algorithm_parameters = 5 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = IMMUTABLE
+  ];
+
+  // Supported signing algorithms of the key.
+  repeated blocky.type.crypto.SignatureAlgorithm signing_algorithms = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Supported encryption algorithms of the key.
+  repeated blocky.type.crypto.EncryptionAlgorithm encryption_algorithms = 7 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the key.
+  string display_name = 8 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // Time when the key was created.
+  google.protobuf.Timestamp create_time = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Time when the key was updated.
+  google.protobuf.Timestamp update_time = 10 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Time when the key was last rotated.
+  google.protobuf.Timestamp last_rotated_time = 11 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Rotation interval of the material derived from this key.
+  // If not provided, the key will not be rotated automatically.
+  google.protobuf.Duration rotation_interval = 12 [(google.api.field_behavior) = OPTIONAL];
+
+  // Determines if a key is protected against accidental deletion.
+  // If not provided, the key will not be protected.
+  bool destroy_protection = 13 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Request message for KeysAdminService.GetKey.
+message GetKeyRequest {
+  // Required. The resource name of the Key to get.
+  // The format of the key resource name:
+  // - `projects/{project}/keys/{key}`
+  // - `keys/{key}`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+}
+
+// Request message for KeysAdminService.ListKeys.
+message ListKeysRequest {
+  // The parent resource name.
+  // The format of the parent resource name:
+  // - `projects/{project}`
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
+  ];
+
+  // The maximum number of keys to return. The service may return fewer than
+  // this value. If unspecified, at most 50 keys will be returned. The maximum
+  // value is 1000; values above 1000 will be coerced to 1000.
+  int32 page_size = 2;
+
+  // Optional. A pagination token returned from a previous call to ListKeys
+  // that indicates where this listing should continue from.
+  string page_token = 3;
+}
+
+// Response message for KeysAdminService.ListKeys.
+message ListKeysResponse {
+  // The list of Keys.
+  repeated Key keys = 1;
+
+  // A token to retrieve next page of results. Pass this value in
+  // ListKeysRequest.page_token to retrieve the next page of results.
+  string next_page_token = 2;
+}
+
+// Request message for KeysAdminService.UpdateKey.
+message UpdateKeyRequest {
+  // Required. Key resource name to update.
+  // Format:
+  // - `projects/{projects}/keys/{key}`
+  // - `keys/{key}`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+
+  // Required. The Key to update.
+  Key key = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // Required. The update mask applies to the resource. For the `FieldMask`
+  // definition, see
+  // https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask
+  // If not set, all mutable fields will be updated.
+  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// Request message for KeysAdminService.DeleteKey.
+message DeleteKeyRequest {
+  // Required. The resource name of the Key to delete.
+  // Format:
+  // - `projects/{projects}/keys/{key}`
+  // - `keys/{key}`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+}
+
+// Request message for KeysAdminService.RotateKey.
+message RotateKeyRequest {
+  // Required. The resource name of the Key to rotate.
+  // Format:
+  // - `projects/{projects}/keys/{key}`
+  // - `keys/{key}`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+}

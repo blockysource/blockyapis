@@ -1,0 +1,203 @@
+// Copyright 2024 The Blocky Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package blocky.kms.admin.v1alpha;
+
+import "blocky/api/annotations.proto";
+import "google/api/annotations.proto";
+import "google/api/client.proto";
+import "google/api/field_behavior.proto";
+import "google/api/resource.proto";
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+
+// A key ring administrative service.
+service KeyRingsAdminService {
+  // Create a new key ring.
+  rpc CreateKeyRing(CreateKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*}/key_rings",
+      body: "key_ring"
+    };
+    option (google.api.method_signature) = "parent,key_ring";
+  }
+
+  // List key rings.
+  rpc ListKeyRings(ListKeyRingsRequest) returns (ListKeyRingsResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/key_rings"};
+    option (google.api.method_signature) = "parent";
+    option (blocky.api.query_params) = {
+      pagination: {
+        max_size: 100,
+        default_size: 50
+      },
+      order_by: "create_time desc"
+    };
+  }
+
+  // Get key ring.
+  rpc GetKeyRing(GetKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {get: "/v1alpha/{name=projects/*/key_rings/*}"};
+    option (google.api.method_signature) = "name";
+  }
+
+  // Update key ring.
+  rpc UpdateKeyRing(UpdateKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {
+      patch: "/v1alpha/{key_ring.name=projects/*/key_rings/*}",
+      body: "key_ring"
+    };
+    option (google.api.method_signature) = "key_ring,update_mask";
+  }
+
+  // Delete key ring.
+  rpc DeleteKeyRing(DeleteKeyRingRequest) returns (KeyRing) {
+    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/key_rings/*}"};
+    option (google.api.method_signature) = "name";
+  }
+}
+
+// The request message for
+message CreateKeyRingRequest {
+  // The parent resource name to which new key ring should belong.
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Required, resource to create.
+  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for
+message GetKeyRingRequest {
+  // Required. The resource name of the key ring to retrieve.
+  // Format:
+  // - `projects/{project}/keyRings/{key_ring}`
+  // - 'keyRings/{key_ring}'
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+  ];
+}
+
+// The request message for
+message ListKeyRingsRequest {
+  // The parent resource from which to list the key rings.
+  // The format is:
+  //  - `projects/{project}`
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
+  ];
+
+  // Optional. The maximum number of KeyRings to return in the response. The
+  // server allows a maximum of 300 KeyRings to return. If unspecified, the
+  // server will use 50 as the default, unless its configuration specifies
+  // a smaller default.
+  int32 page_size = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // Optional. A pagination token returned from a previous call to
+  // ListKeyRingsRequest that indicates where this listing should continue from.
+  string page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// The response message for ListKeyRings method.
+message ListKeyRingsResponse {
+  // List of key rings matching the request.
+  repeated KeyRing key_rings = 1;
+
+  // Token to retrieve the next page of results, or empty if there are no
+  // more results in the list.
+  string next_page_token = 2;
+
+  // The total number of KeyRings that matched the query.
+  int32 total_size = 3;
+}
+
+// The request message for
+message UpdateKeyRingRequest {
+  // Required identifier of the key ring to update.
+  // Formats:
+  // - `projects/{project}/keyRings/{key_ring}`
+  // - 'keyRings/{key_ring}'
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+  ];
+
+  // Required, resource to update.
+  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The list of fields to update.
+  // If empty, all modifiable fields will be updated.
+  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// The request message for DeleteKeyRingRequest.
+message DeleteKeyRingRequest {
+  // Required. The resource name of the key ring to delete.
+  // Format:
+  // - `projects/{project}/keyRings/{key_ring}`
+  // - 'keyRings/{key_ring}'
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
+  ];
+}
+
+// Is a ring of cryptographic keys, that can be combined and used for multiple purposes.
+message KeyRing {
+  // The resource name of the key ring.
+  // Key ring names have the form:
+  // - `projects/{project}/keyRings/{key_ring}` - for project specific key rings
+  // - 'keyRings/{key_ring}' - for root key rings
+  string name = 1 [
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"},
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // The unique id of the key ring.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the key ring.
+  string display_name = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The aliases of the key ring.
+  repeated string aliases = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Creation time of the key ring.
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Update time of the key ring.
+  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The resource names of the keys in this key ring.
+  repeated string keys = 7 [
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Delete protection of the key ring.
+  // When the delete protection is set to true, the key ring cannot be deleted,
+  // and no keys in the key ring can be deleted either.
+  bool delete_protection = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // ETag of the key ring.
+  string etag = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+}

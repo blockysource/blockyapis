@@ -16,7 +16,7 @@ syntax = "proto3";
 
 package blocky.identity.admin.v1alpha;
 
-import "blocky/identity/admin/v1alpha/identity.proto";
+import "blocky/identity/admin/v1alpha/user.proto";
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
@@ -24,8 +24,8 @@ import "google/protobuf/empty.proto";
 
 option go_package = "github.com/blockysource/go-genproto/blocky/identity/admin/v1alpha;identityadminpb";
 
-// The IdentityAdminService provides API methods to manage identities.
-service IdentityAdminService {
+// The UsersAdminService is an administrative service to manage users.
+service UsersAdminService {
   // Creates a new user.
   rpc CreateUser(CreateUserRequest) returns (User) {
     option (google.api.http) = {
