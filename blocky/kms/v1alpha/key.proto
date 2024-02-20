@@ -136,7 +136,8 @@ message Key {
 message KeyMaterial {
   // The resource name of the key material.
   // The format of the key material resource name:
-  // `keys/*/materials/*`
+  // - `keys/*/materials/*`
+  // - `projects/*/keys/*/materials/*`
   string name = 1 [
     (google.api.field_behavior) = IDENTIFIER,
     (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
@@ -145,16 +146,8 @@ message KeyMaterial {
   // The creation time of the key material.
   google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The resource name of the predecessor key material.
-  // This is set only if the key material was rotated.
-  string predecessor = 3 [
-    (google.api.field_behavior) = OPTIONAL,
-    (google.api.field_behavior) = OUTPUT_ONLY,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
-  ];
-
   // Public key material content.
-  blocky.type.crypto.KeyMaterial public_key = 4 [(google.api.field_behavior) = OUTPUT_ONLY];
+  blocky.type.crypto.KeyMaterial public_key = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 }
 
 // Describes the content of a key with details, that allows to use it for cryptographic operations.

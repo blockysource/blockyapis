@@ -22,24 +22,32 @@ import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
 import "google/protobuf/field_mask.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/admin/v1alpha;kmsadminpb";
 
 // A key ring administrative service.
 service KeyRingsAdminService {
   // Create a new key ring.
   rpc CreateKeyRing(CreateKeyRingRequest) returns (KeyRing) {
     option (google.api.http) = {
-      post: "/v1alpha/{parent=projects/*}/key_rings",
-      body: "key_ring"
+      post: "/v1alpha/{parent=projects/*}/keyRings",
+      body: "key_ring",
+      additional_bindings: {
+        patch: "/v1alpha/keyRings",
+        body: "*",
+      }
     };
     option (google.api.method_signature) = "parent,key_ring";
   }
 
   // List key rings.
   rpc ListKeyRings(ListKeyRingsRequest) returns (ListKeyRingsResponse) {
-    option (google.api.http) = {get: "/v1alpha/{parent=projects/*}/key_rings"};
+    option (google.api.http) = {
+      get: "/v1alpha/{parent=projects/*}/keyRings",
+      additional_bindings: {get: "/v1alpha/keyRings"}
+    };
     option (google.api.method_signature) = "parent";
     option (blocky.api.query_params) = {
       pagination: {
@@ -52,25 +60,77 @@ service KeyRingsAdminService {
 
   // Get key ring.
   rpc GetKeyRing(GetKeyRingRequest) returns (KeyRing) {
-    option (google.api.http) = {get: "/v1alpha/{name=projects/*/key_rings/*}"};
+    option (google.api.http) = {
+      get: "/v1alpha/{name=projects/*/keyRings/*}",
+      additional_bindings: {get: "/v1alpha/{name=keyRings/*}"}
+    };
     option (google.api.method_signature) = "name";
   }
 
   // Update key ring.
   rpc UpdateKeyRing(UpdateKeyRingRequest) returns (KeyRing) {
     option (google.api.http) = {
-      patch: "/v1alpha/{key_ring.name=projects/*/key_rings/*}",
-      body: "key_ring"
+      patch: "/v1alpha/{key_ring.name=projects/*/keyRings/*}",
+      body: "key_ring",
+      additional_bindings: {
+        patch: "/v1alpha/{key_ring.name=keyRings/*}",
+        body: "*",
+      }
     };
     option (google.api.method_signature) = "key_ring,update_mask";
   }
 
   // Delete key ring.
-  rpc DeleteKeyRing(DeleteKeyRingRequest) returns (KeyRing) {
-    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/key_rings/*}"};
+  rpc DeleteKeyRing(DeleteKeyRingRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1alpha/{name=projects/*/keyRings/*}",
+      additional_bindings: {delete: "/v1alpha/{name=keyRings/*}"}
+    };
     option (google.api.method_signature) = "name";
   }
 }
+
+// Is a ring of cryptographic keys, that can be combined and used for multiple purposes.
+message KeyRing {
+  // The resource name of the key ring.
+  // Key ring names have the form:
+  // - `projects/{project}/keyRings/{key_ring}` - for project specific key rings
+  // - 'keyRings/{key_ring}' - for root key rings
+  string name = 1 [
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"},
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // The unique id of the key ring.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the key ring.
+  string display_name = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The aliases of the key ring.
+  repeated string aliases = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Creation time of the key ring.
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Update time of the key ring.
+  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The resource names of the keys in this key ring.
+  repeated string keys = 7 [
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Delete protection of the key ring.
+  // When the delete protection is set to true, the key ring cannot be deleted,
+  // and no keys in the key ring can be deleted either.
+  bool delete_protection = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // ETag of the key ring.
+  string etag = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
 
 // The request message for
 message CreateKeyRingRequest {
@@ -159,45 +219,4 @@ message DeleteKeyRingRequest {
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
   ];
-}
-
-// Is a ring of cryptographic keys, that can be combined and used for multiple purposes.
-message KeyRing {
-  // The resource name of the key ring.
-  // Key ring names have the form:
-  // - `projects/{project}/keyRings/{key_ring}` - for project specific key rings
-  // - 'keyRings/{key_ring}' - for root key rings
-  string name = 1 [
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"},
-    (google.api.field_behavior) = IDENTIFIER
-  ];
-
-  // The unique id of the key ring.
-  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The display name of the key ring.
-  string display_name = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
-
-  // The aliases of the key ring.
-  repeated string aliases = 4 [(google.api.field_behavior) = OPTIONAL];
-
-  // Creation time of the key ring.
-  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // Update time of the key ring.
-  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
-
-  // The resource names of the keys in this key ring.
-  repeated string keys = 7 [
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
-    (google.api.field_behavior) = OPTIONAL
-  ];
-
-  // Delete protection of the key ring.
-  // When the delete protection is set to true, the key ring cannot be deleted,
-  // and no keys in the key ring can be deleted either.
-  bool delete_protection = 8 [(google.api.field_behavior) = OPTIONAL];
-
-  // ETag of the key ring.
-  string etag = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
 }

@@ -35,24 +35,36 @@ option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmsp
 service KeyManagementService {
   // Gets a key from the service.
   rpc GetKey(GetKeyRequest) returns (Key) {
-    option (google.api.http) = {get: "/v1alpha/{name=keys/*}"};
+    option (google.api.http) = {
+      get: "/v1alpha/{name=projects/*/keys/*}"
+      additional_bindings: {get: "/v1alpha/{name=keys/*}"}
+    };
     option (google.api.method_signature) = "name";
   }
 
   // Lists Keys.
   rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
-    option (google.api.http) = {get: "/v1alpha/keys"};
+    option (google.api.http) = {
+      get: "/v1alpha/{parent=projects/*}/keys"
+      additional_bindings: {get: "/v1alpha/keys"}
+    };
   }
 
   // Gets the key material of a Key.
   rpc GetKeyMaterial(GetKeyMaterialRequest) returns (KeyMaterial) {
-    option (google.api.http) = {get: "/v1alpha/{name=keys/*}/material"};
+    option (google.api.http) = {
+      get: "/v1alpha/{name=projects/*/keys/*}/material"
+      additional_bindings: {get: "/v1alpha/{name=keys/*}/material"}
+    };
     option (google.api.method_signature) = "name";
   }
 
   // Lists cryptographic keys that matches given query.
   rpc ListKeyMaterials(ListKeyMaterialsRequest) returns (ListKeyMaterialsResponse) {
-    option (google.api.http) = {get: "/v1alpha/{parent=keys/*}/materials"};
+    option (google.api.http) = {
+      get: "/v1alpha/{parent=projects/*/keys/*}/materials"
+      additional_bindings: {get: "/v1alpha/{parent=keys/*}/materials"}
+    };
     option (google.api.method_signature) = "parent";
     option (blocky.api.query_params) = {
       pagination: {
@@ -63,17 +75,14 @@ service KeyManagementService {
     };
   }
 
-  //  // Gets the private key material content.
-  //  rpc GetKeyMaterialContent(GetKeyMaterialContentRequest) returns (KeyMaterialContent) {
-  //    option (google.api.http) = {get: "/v1alpha/{name=keys/*/materials/*}/private"};
-  //    option (google.api.method_signature) = "name";
-  //  }
-  //
-  //  // Gets a batch of private key material contents.
-  //  rpc BatchGetKeyMaterialContents(BatchGetKeyMaterialContentsRequest) returns (BatchGetKeyMaterialContentsResponse) {
-  //    option (google.api.http) = {post: "/v1alpha/{parent=keys/*}/materials:batchGet"};
-  //    option (google.api.method_signature) = "parent";
-  //  }
+  // Gets a batch of key materials by the input identifiers.
+  rpc BatchGetKeyMaterials(BatchGetKeyMaterialsRequest) returns (BatchGetKeyMaterialsResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha/{parent=projects/*}/keys/-/materials:batchGet"
+      additional_bindings: {get: "/v1alpha/keys/-/materials:batchGet"}
+    };
+    option (google.api.method_signature) = "parent";
+  }
 
   // SignBlob signs the given data with the given key.
   // The client is responsible for either hard-coding the pair of key and algorithm or
@@ -81,7 +90,13 @@ service KeyManagementService {
   // This might be used for the needs of creating a JWT token by storing storing the algorithm and key id in the
   // tokens header.
   rpc SignBlob(SignBlobRequest) returns (SignBlobResponse) {
-    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:signBlob"};
+    option (google.api.http) = {
+      post: "/v1alpha/{name=projects/*/keys/*}:signBlob"
+      additional_bindings: {post: "/v1alpha/{name=keys/*}:signBlob"}
+      additional_bindings: {post: "/v1alpha/{name=projects/*/keys/*/materials/*}:signBlob"}
+      additional_bindings: {post: "/v1alpha/{name=keys/*/materials/*}:signBlob"}
+    };
+    option (google.api.method_signature) = "name,algorithm,blob";
   }
 
   // VerifyBlob verifies the given signature with the given key.
@@ -93,7 +108,11 @@ service KeyManagementService {
   // Compared to the SignBlob, this method encodes required metadata into the signature header.
   // This can be used as a generic signing operation which results with well-known structure of the signature.
   rpc SignContent(SignContentRequest) returns (blocky.type.crypto.SignedContent) {
-    option (google.api.http) = {post: "/v1alpha/{name=keys/*}:signContent"};
+    option (google.api.http) = {
+      post: "/v1alpha/{key=keys/*}:signContent",
+      additional_bindings: {post: "/v1alpha/{key=projects/*/keys/*}:signContent"}
+    };
+    option (google.api.method_signature) = "key,algorithm,content";
   }
 
   // Verify signed content verifies the given signature with the given key.
@@ -127,9 +146,9 @@ service KeyManagementService {
     option (google.api.method_signature) = "name";
   }
 
-  // ListKeyRingPublicKeys lists the asymmetric public keys for a given key rings key materials.
-  rpc ListKeyRingPublicKeys(ListKeyRingPublicKeysRequest) returns (ListKeyRingPublicKeysResponse) {
-    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/key_rings/*}/public_keys"};
+  // ListKeyRingKeyMaterials lists the asymmetric public keys for a given key rings key materials.
+  rpc ListKeyRingKeyMaterials(ListKeyRingKeyMaterialsRequest) returns (ListKeyRingKeyMaterialsResponse) {
+    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/keyRings/*}/keyMaterials"};
     option (google.api.method_signature) = "parent";
     option (blocky.api.query_params) = {
       pagination: {
@@ -148,8 +167,8 @@ service KeyManagementService {
 message SignBlobRequest {
   // Required. The resource name that should be used to sign the blob.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
+  // [kms.blockyapis.com/Key] (in format: `keys/*`, `projects/*/keys/*)
+  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/material/*`, `projects/*/keys/*`)
   string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
@@ -209,18 +228,17 @@ message VerifyBlobResponse {
 message SignContentRequest {
   // Required. The resource name that should be used to sign the content.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `keys/*`)
-  // [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/materials/*`)
-  string name = 1 [
+  // [kms.blockyapis.com/Key] (in format: `keys/*`, `projects/*/keys/*`)
+  string key = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
   ];
 
-  // The content to sign.
-  bytes content = 2 [(google.api.field_behavior) = REQUIRED];
-
   // Algorithm used to sign the content.
-  blocky.type.crypto.SignatureAlgorithm algorithm = 3 [(google.api.field_behavior) = OPTIONAL];
+  blocky.type.crypto.SignatureAlgorithm algorithm = 2 [(google.api.field_behavior) = OPTIONAL];
+
+  // The content to sign.
+  bytes content = 3 [(google.api.field_behavior) = REQUIRED];
 
   // Metadata to embed in to signature header.
   map<string, string> meta = 4 [(google.api.field_behavior) = OPTIONAL];
@@ -231,7 +249,7 @@ message VerifySignedContentRequest {
   // The project identifier that the key used to sign belongs to.
   string project = 1 [
     (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "cloudresourcemanager.blockyapis.com/Project"}
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
   ];
 
   // Protobuf web signature
@@ -395,8 +413,6 @@ message ListKeysResponse {
   string next_page_token = 2;
 }
 
-
-
 // Request message for KeyManagementService.GetKeyMaterial.
 message GetKeyMaterialRequest {
   // Required. The resource name of the Key whose key material to get.
@@ -436,28 +452,13 @@ message ListKeyMaterialsResponse {
   string next_page_token = 2;
 }
 
-// Request message for KeyManagementService.GetKeyMaterialContent.
-message GetKeyMaterialContentRequest {
-  // Required. The resource name of the KeyMaterial whose private key material to get.
-  // Format: `keys/*/materials/*`
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+// Request message for KeyManagementService.BatchGetKeyMaterials.
+message BatchGetKeyMaterialsRequest {
+  // The parent resource name to which new key ring should belong.
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
   ];
-}
-
-// Request message for KeyManagementService.GetPublicKeyMaterial.
-message GetPublicKeyMaterialRequest {
-  // Required. The resource name of the KeyMaterial whose public key material to get.
-  // Format: `keys/*/materials/*`
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
-  ];
-}
-
-// Request message for KeyManagementService.BatchGetKeyMaterialContents.
-message BatchGetKeyMaterialContentsRequest {
   // Required. The names of the KeyMaterials to get.
   // A maximum of 1000 can be obtained in a batch.
   repeated string names = 2 [
@@ -467,18 +468,13 @@ message BatchGetKeyMaterialContentsRequest {
 }
 
 // Response message for KeyManagementService.BatchGetKeyMaterialContents.
-message BatchGetKeyMaterialContentsResponse {
-  // The list of KeyMaterialContents.
-  repeated KeyMaterialContent key_material_contents = 1;
+message BatchGetKeyMaterialsResponse {
+  // The list of KeyMaterials.
+  repeated KeyMaterial key_materials = 1;
 }
 
-// The request message for
-message CreateKeyRingRequest {
-  // Required, resource to create.
-  KeyRing key_ring = 1 [(google.api.field_behavior) = REQUIRED];
-}
 
-// The request message for
+// The request message for GetKeyRing.
 message GetKeyRingRequest {
   // Required. The resource name of the key ring to retrieve.
   // Format: 'keyRings/{key_ring}'.
@@ -488,23 +484,23 @@ message GetKeyRingRequest {
   ];
 }
 
-// The request message for
-message ListKeyRingPublicKeysRequest {
-  // Optional. The maximum number of public keys to return in the response. The
-  // server allows a maximum of 300 public keys to return. If unspecified, the
+// The request message for ListKeyRingKeyMaterials.
+message ListKeyRingKeyMaterialsRequest {
+  // Optional. The maximum number of key materials to return in the response. The
+  // server allows a maximum of 300 key materials to return. If unspecified, the
   // server will use 50 as the default, unless its configuration specifies
   // a smaller default.
   int32 page_size = 1 [(google.api.field_behavior) = OPTIONAL];
 
   // Optional. A pagination token returned from a previous call to
-  // ListKeyRingPublicKeysRequest that indicates where this listing should continue from.
+  // ListKeyRingKeyMaterialsRequest that indicates where this listing should continue from.
   string page_token = 2 [(google.api.field_behavior) = OPTIONAL];
 }
 
-// The response message for
-message ListKeyRingPublicKeysResponse {
-  // List of public keys matching the request.
-  repeated KeyMaterialContent public_keys = 1;
+// The response message for ListKeyRingKeyMaterials.
+message ListKeyRingKeyMaterialsResponse {
+  // List of key materials matching the request.
+  repeated KeyMaterial key_materials = 1;
 
   // Token to retrieve the next page of results, or empty if there are no
   // more results in the list.

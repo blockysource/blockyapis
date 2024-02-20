@@ -27,7 +27,7 @@ import "google/protobuf/duration.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/blockysource/go-genproto/blocky/kms/v1alpha;kmspb";
+option go_package = "github.com/blockysource/go-genproto/blocky/kms/admin/v1alpha;kmsadminpb";
 
 // A keys administrative service.
 service KeysAdminService {
@@ -35,59 +35,100 @@ service KeysAdminService {
   rpc CreateKey(CreateKeyRequest) returns (Key) {
     option (google.api.http) = {
       post: "/v1alpha/{parent=projects/*}/keys"
-      body: "*"
+      body: "*",
+      additional_bindings: {
+        post: "/v1alpha/keys"
+        body: "*",
+      }
     };
-    option (google.api.method_signature) = "key";
+    option (google.api.method_signature) = "parent,key";
   }
 
+  // Gets a single key.
   rpc GetKey(GetKeyRequest) returns (Key) {
-    option (google.api.http) = {get: "/v1alpha/{name=projects/*/keys/*}"};
+    option (google.api.http) = {
+      get: "/v1alpha/{name=projects/*/keys/*}",
+      additional_bindings: {get: "/v1alpha/{name=keys/*}"}
+    };
     option (google.api.method_signature) = "name";
   }
 
   // Lists Keys.
   rpc ListKeys(ListKeysRequest) returns (ListKeysResponse) {
-    option (google.api.http) = {get: "/v1alpha/{parent=projects/*/}keys"};
+    option (google.api.http) = {
+      get: "/v1alpha/{parent=projects/*}/keys",
+      additional_bindings: {get: "/v1alpha/keys"}
+    };
   }
 
   // Updates the metadata and/or key material of a Key.
   rpc UpdateKey(UpdateKeyRequest) returns (Key) {
     option (google.api.http) = {
       patch: "/v1alpha/{key.name=projects/*/keys/*}"
-      body: "*"
+      body: "*",
+      additional_bindings: {
+        patch: "/v1alpha/{key.name=keys/*}"
+        body: "*",
+      }
     };
     option (google.api.method_signature) = "key";
   }
 
   // Deletes a Key.
   rpc DeleteKey(DeleteKeyRequest) returns (Key) {
-    option (google.api.http) = {delete: "/v1alpha/{name=projects/*/keys/*}"};
+    option (google.api.http) = {
+      delete: "/v1alpha/{name=projects/*/keys/*}",
+      additional_bindings: {delete: "/v1alpha/{name=keys/*}"}
+    };
     option (google.api.method_signature) = "name";
   }
 
-  // Rotates the key material of a Key.
-  rpc RotateKey(RotateKeyRequest) returns (Key) {
-    option (google.api.http) = {post: "/v1alpha/{name=projects/*/keys/*}:rotate"};
-    option (google.api.method_signature) = "name";
+  // Creates a new key material of a Key.
+  rpc CreateKeyMaterial(CreateKeyMaterialRequest) returns (KeyMaterial) {
+    option (google.api.http) = {
+      post: "/v1alpha/{parent=projects/*/keys/*}",
+      additional_bindings: {post: "/v1alpha/{parent=keys/*}"}
+    };
+    option (google.api.method_signature) = "parent";
   }
-}
 
-// Request message for KeysAdminService.CreateKey.
-message CreateKeyRequest {
-  // The parent resource name to which new key ring should belong.
-  string parent = 1 [
-    (google.api.field_behavior) = OPTIONAL,
-    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
-  ];
-  // Required. The Key to create.
-  Key key = 2 [(google.api.field_behavior) = REQUIRED];
+  // Gets a key material by identifier.
+  rpc GetKeyMaterial(GetKeyMaterialRequest) returns (KeyMaterial) {
+    option (google.api.http) = {
+      get: "/v1alpha/{name=projects/*/keys/*/materials/*}",
+      additional_bindings: {get: "/v1alpha/{name=keys/*/materials/*}"}
+    };
+  }
+
+  // Lists key materials.
+  rpc ListKeyMaterials(ListKeyMaterialsRequest) returns (ListKeyMaterialsResponse) {
+    option (google.api.http) = {
+      get: "/v1alpha/{parent=projects/*/keys/*}/materials",
+      additional_bindings: {get: "/v1alpha/{parent=keys/*}/materials"}
+      response_body: "*"
+    };
+    option (google.api.method_signature) = "parent";
+  }
+
+  // Deletes a key material
+  rpc DeleteKeyMaterial(DeleteKeyMaterialRequest) returns (KeyMaterial) {
+    option (google.api.http) = {
+      delete: "/v1alpha/{name=projects/*/keys/*/materials/*}",
+      body: "*",
+      additional_bindings: {
+        delete: "/v1alpha/{name=keys/*/materials/*}",
+        body: "*",
+      }
+    };
+  }
 }
 
 // Key represents a cryptographic key.
 message Key {
   // Resource name of the Key.
   // The format of the key resource name:
-  // `keys/*`
+  // - `keys/*`
+  // - `projects/*/keys/*`
   string name = 1 [
     (google.api.field_behavior) = IDENTIFIER,
     (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
@@ -102,7 +143,8 @@ message Key {
 
   // The aliases that can be used to refer to the key.
   // The full path of the alias is:
-  // 'keys/{key_alias}'
+  // - 'keys/{key_alias}'
+  // - 'projects/*/keys/{key_alias}'
   repeated string aliases = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
 
   // The key algorithm type
@@ -142,6 +184,35 @@ message Key {
   // Determines if a key is protected against accidental deletion.
   // If not provided, the key will not be protected.
   bool destroy_protection = 13 [(google.api.field_behavior) = OPTIONAL];
+}
+
+// Is a cryptographic key material directly used for the cryptographic operations.
+// The parameters of the material are derived from the key.
+message KeyMaterial {
+  // The resource name of the key material.
+  // The format of the key material resource name:
+  // `keys/*/materials/*`
+  string name = 1 [
+    (google.api.field_behavior) = IDENTIFIER,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+
+  // The creation time of the key material.
+  google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Public key material content.
+  blocky.type.crypto.KeyMaterial public_key = 3 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
+// Request message for KeysAdminService.CreateKey.
+message CreateKeyRequest {
+  // The parent resource name to which new key ring should belong.
+  string parent = 1 [
+    (google.api.field_behavior) = OPTIONAL,
+    (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
+  ];
+  // Required. The Key to create.
+  Key key = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Request message for KeysAdminService.GetKey.
@@ -188,23 +259,14 @@ message ListKeysResponse {
 
 // Request message for KeysAdminService.UpdateKey.
 message UpdateKeyRequest {
-  // Required. Key resource name to update.
-  // Format:
-  // - `projects/{projects}/keys/{key}`
-  // - `keys/{key}`
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
-  ];
-
   // Required. The Key to update.
-  Key key = 2 [(google.api.field_behavior) = REQUIRED];
+  Key key = 1 [(google.api.field_behavior) = REQUIRED];
 
   // Required. The update mask applies to the resource. For the `FieldMask`
   // definition, see
   // https://developers.google.com/protocol-buffers/docs/reference/google.protobuf#fieldmask
   // If not set, all mutable fields will be updated.
-  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 // Request message for KeysAdminService.DeleteKey.
@@ -219,14 +281,70 @@ message DeleteKeyRequest {
   ];
 }
 
-// Request message for KeysAdminService.RotateKey.
-message RotateKeyRequest {
+// Request message for KeysAdminService.CreateKeyMaterial.
+message CreateKeyMaterialRequest {
   // Required. The resource name of the Key to rotate.
   // Format:
   // - `projects/{projects}/keys/{key}`
   // - `keys/{key}`
-  string name = 1 [
+  string parent = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+}
+
+// Request message for KeysAdminService.GetKeyMaterial.
+message GetKeyMaterialRequest {
+  // Required. The resource name of the KeyMaterial to get.
+  // Format:
+  // - `projects/{projects}/keys/{key}/materials/{material}`
+  // - `keys/{key}/materials/{material}`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
+  ];
+}
+
+// Request message for KeysAdminService.ListKeyMaterials.
+message ListKeyMaterialsRequest {
+  // Required. The resource name of the Key to list KeyMaterials from.
+  // Format:
+  // - `projects/{projects}/keys/{key}`
+  // - `keys/{key}`
+  string parent = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"}
+  ];
+
+  // The maximum number of KeyMaterials to return. The service may return
+  // fewer than this value. If unspecified, at most 50 KeyMaterials will be
+  // returned. The maximum value is 100; values above 100 will be coerced to
+  // 100.
+  int32 page_size = 2;
+
+  // Optional. A pagination token returned from a previous call to
+  // ListKeyMaterials that indicates where this listing should continue from.
+  string page_token = 3;
+}
+
+// Response message for KeysAdminService.ListKeyMaterials.
+message ListKeyMaterialsResponse {
+  // The list of KeyMaterials.
+  repeated KeyMaterial key_materials = 1;
+
+  // A token to retrieve next page of results. Pass this value in
+  // ListKeyMaterialsRequest.page_token to retrieve the next page of results.
+  string next_page_token = 2;
+}
+
+// Request message for KeysAdminService.DeleteKeyMaterial.
+message DeleteKeyMaterialRequest {
+  // Required. The resource name of the KeyMaterial to delete.
+  // Format:
+  // - `projects/{projects}/keys/{key}/materials/{material}`
+  // - `keys/{key}/materials/{material}`
+  string name = 1 [
+    (google.api.field_behavior) = REQUIRED,
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyMaterial"}
   ];
 }
