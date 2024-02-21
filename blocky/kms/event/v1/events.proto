@@ -102,15 +102,8 @@ message KeyMaterial {
   // The creation time of the key material.
   google.protobuf.Timestamp create_time = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
 
-  // The resource name of the predecessor key material.
-  // This is set only if the key material was rotated.
-  string predecessor = 3 [
-    (google.api.field_behavior) = OPTIONAL,
-    (google.api.field_behavior) = OUTPUT_ONLY
-  ];
-
   // The public content of the key material.
-  blocky.type.crypto.KeyMaterial public_key = 4 [(google.api.field_behavior) = REQUIRED];
+  blocky.type.crypto.KeyMaterial public_key = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
 // An event message that is published when a key is created.

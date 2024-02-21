@@ -157,4 +157,14 @@ message ResetPasswordRequest {
   string parent = 1 [(google.api.field_behavior) = OPTIONAL];
 
   // The token used to authenticate the user in resetting the password.
+  string token = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // The new password of the user.
+  string new_password = 3 [(google.api.field_behavior) = REQUIRED];
+}
+
+// ResetPasswordResponse is a response message for the ResetPassword method.
+message ResetPasswordResponse {
+  // The user that has been authenticated.
+  User user = 1;
 }
