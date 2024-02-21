@@ -23,8 +23,8 @@ import "google/api/annotations.proto";
 import "google/api/client.proto";
 import "google/api/field_behavior.proto";
 import "google/api/resource.proto";
-import "google/protobuf/empty.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -112,7 +112,7 @@ service KeysAdminService {
   }
 
   // Deletes a key material
-  rpc DeleteKeyMaterial(DeleteKeyMaterialRequest) returns (KeyMaterial) {
+  rpc DeleteKeyMaterial(DeleteKeyMaterialRequest) returns (google.protobuf.Empty) {
     option (google.api.http) = {
       delete: "/v1alpha/{name=projects/*/keys/*/materials/*}",
       body: "*",
