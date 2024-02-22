@@ -228,8 +228,9 @@ message VerifyBlobResponse {
 message SignContentRequest {
   // Required. The resource name that should be used to sign the content.
   // It may either be a:
-  // [kms.blockyapis.com/Key] (in format: `keys/*`, `projects/*/keys/*`)
-  string key = 1 [
+  // - [kms.blockyapis.com/Key] (in format: `keys/*`, `projects/*/keys/*`)
+  // - [kms.blockyapis.com/KeyMaterial] (in format: `keys/*/material/*`, `projects/*/keys/*`)
+  string name = 1 [
     (google.api.field_behavior) = REQUIRED,
     (google.api.resource_reference) = {type: "*"}
   ];
@@ -248,7 +249,7 @@ message SignContentRequest {
 message VerifySignedContentRequest {
   // The project identifier that the key used to sign belongs to.
   string project = 1 [
-    (google.api.field_behavior) = REQUIRED,
+    (google.api.field_behavior) = OPTIONAL,
     (google.api.resource_reference) = {type: "resourcemanager.blockyapis.com/Project"}
   ];
 
@@ -472,7 +473,6 @@ message BatchGetKeyMaterialsResponse {
   // The list of KeyMaterials.
   repeated KeyMaterial key_materials = 1;
 }
-
 
 // The request message for GetKeyRing.
 message GetKeyRingRequest {
