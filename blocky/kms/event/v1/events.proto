@@ -106,6 +106,47 @@ message KeyMaterial {
   blocky.type.crypto.KeyMaterial public_key = 3 [(google.api.field_behavior) = REQUIRED];
 }
 
+// Is a ring of cryptographic keys, that can be combined and used for multiple purposes.
+message KeyRing {
+  // The resource name of the key ring.
+  // Key ring names have the form:
+  // - `projects/{project}/keyRings/{key_ring}` - for project specific key rings
+  // - 'keyRings/{key_ring}' - for root key rings
+  string name = 1 [
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"},
+    (google.api.field_behavior) = IDENTIFIER
+  ];
+
+  // The unique id of the key ring.
+  string uid = 2 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The display name of the key ring.
+  string display_name = 3 [(google.api.field_behavior) = NON_EMPTY_DEFAULT];
+
+  // The aliases of the key ring.
+  repeated string aliases = 4 [(google.api.field_behavior) = OPTIONAL];
+
+  // Creation time of the key ring.
+  google.protobuf.Timestamp create_time = 5 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // Update time of the key ring.
+  google.protobuf.Timestamp update_time = 6 [(google.api.field_behavior) = OUTPUT_ONLY];
+
+  // The resource names of the keys in this key ring.
+  repeated string keys = 7 [
+    (google.api.resource_reference) = {type: "kms.blockyapis.com/Key"},
+    (google.api.field_behavior) = OPTIONAL
+  ];
+
+  // Delete protection of the key ring.
+  // When the delete protection is set to true, the key ring cannot be deleted,
+  // and no keys in the key ring can be deleted either.
+  bool delete_protection = 8 [(google.api.field_behavior) = OPTIONAL];
+
+  // ETag of the key ring.
+  string etag = 9 [(google.api.field_behavior) = OUTPUT_ONLY];
+}
+
 // An event message that is published when a key is created.
 message KeyCreated {
   // The key that was created.
@@ -134,4 +175,10 @@ message KeyDeleted {
 message KeyMaterialCreated {
   // The key material that was created.
   KeyMaterial key_material = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// An event message that is published when a key ring is created.
+message KeyRingCreated {
+  // The key ring that was created.
+  KeyRing key_ring = 1 [(google.api.field_behavior) = REQUIRED];
 }

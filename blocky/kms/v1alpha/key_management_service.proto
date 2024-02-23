@@ -336,6 +336,9 @@ message EncryptBlobRequest {
 
   // The blob to encrypt.
   bytes blob = 2 [(google.api.field_behavior) = REQUIRED];
+
+  // An optional key algorithm used to encrypt the data.
+  blocky.type.crypto.KeyManagementAlgorithm key_algorithm = 3 [(google.api.field_behavior) = OPTIONAL];
 }
 
 // EncryptBlobResponse is the response for the EncryptBlob method.
