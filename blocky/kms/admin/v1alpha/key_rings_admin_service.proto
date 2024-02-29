@@ -192,21 +192,12 @@ message ListKeyRingsResponse {
 
 // The request message for
 message UpdateKeyRingRequest {
-  // Required identifier of the key ring to update.
-  // Formats:
-  // - `projects/{project}/keyRings/{key_ring}`
-  // - 'keyRings/{key_ring}'
-  string name = 1 [
-    (google.api.field_behavior) = REQUIRED,
-    (google.api.resource_reference) = {type: "kms.blockyapis.com/KeyRing"}
-  ];
-
   // Required, resource to update.
-  KeyRing key_ring = 2 [(google.api.field_behavior) = REQUIRED];
+  KeyRing key_ring = 1 [(google.api.field_behavior) = REQUIRED];
 
   // The list of fields to update.
   // If empty, all modifiable fields will be updated.
-  google.protobuf.FieldMask update_mask = 3 [(google.api.field_behavior) = REQUIRED];
+  google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
 // The request message for DeleteKeyRingRequest.
